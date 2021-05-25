@@ -48,7 +48,7 @@ while True:
     (msg, address) = csock.recvfrom(59)
     print("received", len(msg), msg)
 
-    myAddress = 2;
+    myAddress = 2
 
     message = [x for x in msg]
     source = message[0]
