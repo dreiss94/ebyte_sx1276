@@ -27,8 +27,11 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-print("sending", sys.argv[0])
-csock.sendto(str.encode(sys.argv[0]), e32_sock)
+message = [1, 3, 2] # Source, Destination, Next Hop
+barr = bytearray(message)
+
+print("sending", message)
+csock.sendto(barr, e32_sock)
 (bytes, address) = csock.recvfrom(10)
 print("return code", bytes[0])
 
