@@ -47,3 +47,25 @@ while True:
     # receive from the e32
     (msg, address) = csock.recvfrom(59)
     print("received", len(msg), msg)
+
+    myAddress = 2;
+
+    message = [x for x in msg]
+    source = message[0]
+    destination = message[1]
+    next_hop = message[2]
+
+
+    
+
+    if destination == myAddress:
+        print("Message ", msg, " arrived at destination ", myAddress)
+    else:
+        fwd_message = [source, destination, destination]
+        barr = bytearray(message)
+
+        print("forwarding message", fwd_message)
+        csock.sendto(barr, e32_sock)
+        (bytes, address) = csock.recvfrom(10)
+        print("return code", bytes[0])
+
