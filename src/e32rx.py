@@ -45,19 +45,19 @@ if msg[0] != 0:
 
 routingTable = {}
 
+#myAddress = 1
+#myAddress = 2
+myAddress = 3
+
 while True:
     # receive from the e32
     (msg, address) = csock.recvfrom(59)
     print("received", len(msg), msg)
 
-    myAddress = 3
-
     message = [x for x in msg]
     source = message[0]
     destination = message[1]
     next_hop = message[2]
-
-
     
     if next_hop == myAddress:
         if destination == myAddress:
