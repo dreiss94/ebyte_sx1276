@@ -6,7 +6,7 @@ import os, os.path
 import time
 
 e32_sock = "/run/e32.socket"
-csock_file = "/tmp/client"
+csock_file = "/tmp/client1"
 
 if os.path.exists(csock_file):
   os.remove(csock_file)
@@ -27,20 +27,23 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
+
 myAddress   = 1
-destination = 2
-nextHop     = 3
+destination = 255
+nextHop     = 255
 
 message = [myAddress, destination, nextHop] # Source, Destination, Next Hop
-
 barr = bytearray(message)
+try:
+    while True:
+        print("sending", message)
+        csock.sendto(barr, e32_sock)
+        (bytes, address) = csock.recvfrom(10)
+        print("return code", bytes[0])
+        time.sleep(5)
 
-print("sending", message)
-csock.sendto(barr, e32_sock)
-(bytes, address) = csock.recvfrom(10)
-print("return code", bytes[0])
+finally:
+    csock.close()
 
-csock.close()
-
-if os.path.exists(csock_file):
-    os.remove(csock_file)
+    if os.path.exists(csock_file):
+        os.remove(csock_file)
