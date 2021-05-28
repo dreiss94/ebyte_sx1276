@@ -51,3 +51,6 @@ tags
 e32
 \#*#
 \.\#*
+
+../.vscode/
+.vscode/
