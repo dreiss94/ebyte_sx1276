@@ -57,15 +57,16 @@ while True:
 
 
     
-
-    if destination == myAddress:
-        print("Message ", msg, " arrived at destination ", myAddress)
     if next_hop == myAddress:
-        fwd_message = [source, destination, destination]
-        barr = bytearray(fwd_message)
+        if destination == myAddress:
+            print("Message ", msg, " arrived at destination ", myAddress)
+        else:
+            fwd_message = [source, destination, destination]
+            barr = bytearray(fwd_message)
 
-        print("forwarding message", fwd_message)
-        csock.sendto(barr, e32_sock)
-        (bytes, address) = csock.recvfrom(10)
-        print("return code", bytes[0])
-
+            print("forwarding message", fwd_message)
+            csock.sendto(barr, e32_sock)
+            (bytes, address) = csock.recvfrom(10)
+            print("return code", bytes[0])
+    else:
+        print("Message discarded because Im not next hop")
