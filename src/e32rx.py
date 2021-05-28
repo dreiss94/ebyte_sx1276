@@ -43,12 +43,14 @@ if msg[0] != 0:
 # if msg[1] != 0:
 #     print("bad value", msg[1], "at", msg[0])
 
+routingTable = {}
+
 while True:
     # receive from the e32
     (msg, address) = csock.recvfrom(59)
     print("received", len(msg), msg)
 
-    myAddress = 2
+    myAddress = 3
 
     message = [x for x in msg]
     source = message[0]
@@ -68,5 +70,9 @@ while True:
             csock.sendto(barr, e32_sock)
             (bytes, address) = csock.recvfrom(10)
             print("return code", bytes[0])
+    if next_hop == 255:
+        if source not in routingTable:
+            routingTable[source] = source
+            print("routing table updated, rT[%d] = %d " % (source, routingTable[source]))
     else:
         print("Message discarded because Im not next hop")
