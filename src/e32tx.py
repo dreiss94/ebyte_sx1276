@@ -28,8 +28,11 @@ if msg[0] != 0:
 #print("return code", bytes[0])
 
 myAddress   = 1
-destination = 2
-nextHop     = 3
+#myAddress   = 2
+#myAddress   = 3
+
+destination = 3
+nextHop     = 2
 
 message = [myAddress, destination, nextHop] # Source, Destination, Next Hop
 
