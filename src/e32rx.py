@@ -46,8 +46,8 @@ if msg[0] != 0:
 routingTable = {}
 
 #myAddress = 1
-#myAddress = 2
-myAddress = 3
+myAddress = 2
+#myAddress = 3
 
 while True:
     # receive from the e32
@@ -75,4 +75,4 @@ while True:
             routingTable[source] = source
             print("routing table updated, rT[%d] = %d " % (source, routingTable[source]))
     else:
-        print("Message discarded because Im not next hop")
+        print("Message ", msg, " discarded because Im not next hop")
