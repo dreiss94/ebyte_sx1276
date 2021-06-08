@@ -45,8 +45,8 @@ if msg[0] != 0:
 
 routingTable = {}
 
-#myAddress = 1
-myAddress = 2
+myAddress = 1
+#myAddress = 2
 #myAddress = 3
 
 while True:
@@ -54,23 +54,26 @@ while True:
     (msg, address) = csock.recvfrom(59)
     print("received", len(msg), msg)
 
-    message = [x for x in msg]
-    source = message[0]
-    destination = message[1]
-    next_hop = message[2]
+    try:
+        message = [x for x in msg]
+        source = message[0]
+        destination = message[1]
+        next_hop = message[2]
+    except:
+        pass
     
     if next_hop == myAddress:
         if destination == myAddress:
             print("Message ", msg, " arrived at destination ", myAddress)
         else:
-            fwd_message = [source, destination, destination]
+            fwd_message = [source, destination, routingTable[destination]]
             barr = bytearray(fwd_message)
 
             print("forwarding message", fwd_message)
             csock.sendto(barr, e32_sock)
             (bytes, address) = csock.recvfrom(10)
             print("return code", bytes[0])
-    if next_hop == 255:
+    elif next_hop == 255:
         if source not in routingTable:
             routingTable[source] = source
             print("routing table updated, rT[%d] = %d " % (source, routingTable[source]))

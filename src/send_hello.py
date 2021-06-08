@@ -27,8 +27,8 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-#myAddress   = 1
-myAddress   = 2
+myAddress   = 1
+#myAddress   = 2
 #myAddress   = 3
 
 destination = 255
