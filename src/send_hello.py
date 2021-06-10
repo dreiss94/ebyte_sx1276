@@ -4,7 +4,9 @@ import socket
 import sys
 import os, os.path
 import time
-import routing
+from routing import lsdb as lsdb
+from routing import routingTable as routingTable
+from routing import myAddress as myAddress
 
 e32_sock = "/run/e32.socket"
 csock_file = "/tmp/client1"
@@ -28,13 +30,12 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-myAddress   = routing.myAddress
 
 destination = 255
 nextHop     = 255
 
-#message = [myAddress, destination, nextHop] # Source, Destination, Identifier
-message = [myAddress, destination-250, nextHop-1, 0, 2] # Source, Version, Identifier, Neighbour1, Neighbour2
+message = [myAddress, destination, nextHop] # Source, Destination, Identifier
+#message = [myAddress, destination-250, nextHop-1, 0, 2] # Source, Version, Identifier, Neighbour1, Neighbour2
 
 
 barr = bytearray(message)

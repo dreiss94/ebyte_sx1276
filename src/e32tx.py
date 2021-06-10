@@ -4,7 +4,9 @@ import socket
 import sys
 import os, os.path
 import time
-import routing
+from routing import lsdb as lsdb
+from routing import routingTable as routingTable
+from routing import myAddress as myAddress
 
 e32_sock = "/run/e32.socket"
 csock_file = "/tmp/client"
@@ -28,7 +30,6 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-myAddress   = routing.myAddress
 
 destination = 3
 nextHop     = 2

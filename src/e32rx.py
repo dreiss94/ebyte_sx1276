@@ -4,7 +4,9 @@ import socket
 import sys
 import os, os.path
 import time
-import routing
+from routing import lsdb as lsdb
+from routing import routingTable as routingTable
+from routing import myAddress as myAddress
 
 def close_sock():
     global client_sock
@@ -44,9 +46,6 @@ if msg[0] != 0:
 # if msg[1] != 0:
 #     print("bad value", msg[1], "at", msg[0])
 
-routingTable = routing.routingTable
-
-myAddress = routing.myAddress
 
 while True:
     # receive from the e32
@@ -81,7 +80,6 @@ while True:
 
         # handle LSA [source]
 
-        lsdb = routing.lsdb
         version = message[1]
         
         if version != lsdb["version"]:
@@ -91,6 +89,10 @@ while True:
             lsdb[source] = [n1,n2]
 
             print(lsdb)
+        
+        elif version == lsdb["version"]:
+            if source in lsdb:
+
 
     elif identifier == 255:
 
