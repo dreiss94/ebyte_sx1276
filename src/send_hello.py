@@ -27,14 +27,17 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-myAddress   = 1
+myAddress   = 0
+#myAddress   = 1
 #myAddress   = 2
-#myAddress   = 3
 
 destination = 255
 nextHop     = 255
 
-message = [myAddress, destination, nextHop] # Source, Destination, Next Hop
+#message = [myAddress, destination, nextHop] # Source, Destination, Identifier
+message = [myAddress, destination-250, nextHop-1, 0, 2] # Source, Version, Identifier, Neighbour1, Neighbour2
+
+
 barr = bytearray(message)
 try:
     while True:
@@ -42,7 +45,7 @@ try:
         csock.sendto(barr, e32_sock)
         (bytes, address) = csock.recvfrom(10)
         print("return code", bytes[0])
-        time.sleep(5)
+        time.sleep(10)
 
 finally:
     csock.close()

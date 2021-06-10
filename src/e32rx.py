@@ -4,6 +4,7 @@ import socket
 import sys
 import os, os.path
 import time
+import routing
 
 def close_sock():
     global client_sock
@@ -43,11 +44,11 @@ if msg[0] != 0:
 # if msg[1] != 0:
 #     print("bad value", msg[1], "at", msg[0])
 
-routingTable = {}
+routingTable = routing.routingTable
 
-myAddress = 1
+myAddress = 0
+#myAddress = 1
 #myAddress = 2
-#myAddress = 3
 
 while True:
     # receive from the e32
@@ -57,12 +58,16 @@ while True:
     try:
         message = [x for x in msg]
         source = message[0]
-        destination = message[1]
-        next_hop = message[2]
+        identifier = message[2]
     except:
         pass
     
-    if next_hop == myAddress:
+    if identifier == myAddress:
+
+        # multi-hop
+
+        destination = message[1]
+
         if destination == myAddress:
             print("Message ", msg, " arrived at destination ", myAddress)
         else:
@@ -73,7 +78,26 @@ while True:
             csock.sendto(barr, e32_sock)
             (bytes, address) = csock.recvfrom(10)
             print("return code", bytes[0])
-    elif next_hop == 255:
+    
+    elif identifier == 254:
+
+        # handle LSA [source]
+
+        lsdb = routing.lsdb
+        version = message[1]
+        
+        if version != lsdb["version"]:
+            n1 = message[3]
+            n2 = message[4]
+            lsdb["version"] = version
+            lsdb[source] = [n1,n2]
+
+            print(lsdb)
+
+    elif identifier == 255:
+
+        # handle hello messages [source, 255, 255]
+        
         if source not in routingTable:
             routingTable[source] = source
             print("routing table updated, rT[%d] = %d " % (source, routingTable[source]))
