@@ -54,3 +54,5 @@ e32
 
 ../.vscode/
 .vscode/
+*.pyo
+*.pyc
