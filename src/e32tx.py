@@ -4,6 +4,7 @@ import socket
 import sys
 import os, os.path
 import time
+import routing
 
 e32_sock = "/run/e32.socket"
 csock_file = "/tmp/client"
@@ -27,9 +28,7 @@ if msg[0] != 0:
 #(bytes, address) = csock.recvfrom(10)
 #print("return code", bytes[0])
 
-myAddress   = 0
-#myAddress   = 1
-#myAddress   = 2
+myAddress   = routing.myAddress
 
 destination = 3
 nextHop     = 2

@@ -46,9 +46,7 @@ if msg[0] != 0:
 
 routingTable = routing.routingTable
 
-myAddress = 0
-#myAddress = 1
-#myAddress = 2
+myAddress = routing.myAddress
 
 while True:
     # receive from the e32
