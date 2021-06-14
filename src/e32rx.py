@@ -192,8 +192,10 @@ print("my ID", myAddress , "my Neighbours:", neighbours, "\n")
 time.sleep(10)
 
 print("starting send_lsa")
-lsdb["version"] = lsdb["version"] + 1
-build_lsa.start()
+if build_lsa.is_alive(): pass
+else:
+    lsdb["version"] = lsdb["version"] + 1
+    build_lsa.start()
 
 build_lsa.join()
 print("send_lsa finished: lsbd is updated")
