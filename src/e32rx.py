@@ -152,7 +152,7 @@ def multi_hop():
                         elif lsdb[source] != message[4:]:
                             lsdb[source] = message[4:]
                     else:
-                        lsdb["version"] = myversion + 1
+                        lsdb[source] = message[4:]
                         build_lsa.start()
             
             else:
