@@ -78,7 +78,7 @@ def send_lsa():
     for i in range(5):
         print("sending", message)
         send(barr)
-        time.sleep(5)
+        time.sleep(10)
 
 
 def multi_hop():
@@ -129,10 +129,14 @@ def multi_hop():
             if myversion > version:
                 pass
 
-            elif myversion >= version:
+            elif myversion <= version:
 
                 if version == myversion:
-                    if lsdb[source] != message[4:]:
+
+                    if source not in lsdb.keys():
+                        lsdb[source] = message[4:]
+
+                    elif lsdb[source] != message[4:]:
                         lsdb[source] = message[4:]
                 
                 else:
@@ -151,6 +155,8 @@ def multi_hop():
                 print("repeating foreign LSA")
                 send(bytearray(message))
         
+
+
 
 
         elif identifier == 255:
@@ -186,10 +192,11 @@ print("my ID", myAddress , "my Neighbours:", neighbours, "\n")
 time.sleep(10)
 
 print("starting send_lsa")
-send_lsa.start()
+lsdb["version"] = lsdb["version"] + 1
+build_lsa.start()
 
-send_lsa.join()
-print("send_hello finished: lsbd is updated")
+build_lsa.join()
+print("send_lsa finished: lsbd is updated")
 
 print("LSDB:", lsdb)
 
