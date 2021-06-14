@@ -3,7 +3,3 @@
 myAddress   = 0
 #myAddress   = 1
 #myAddress   = 2
-
-routingTable = {}
-
-lsdb = {"version" : 1}
