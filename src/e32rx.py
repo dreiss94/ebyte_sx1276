@@ -118,27 +118,39 @@ def multi_hop():
             except:
                 pass
         
+        
         elif identifier == 254:
 
             # handle LSA [Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...]
 
             version = message[2]
-            
-            if version > lsdb["version"]:
-                lsdb["version"] = version
-                lsdb[source] = message[4:]
+            myversion = lsdb["version"]
 
-                print(lsdb)
-            
-            elif version == lsdb["version"]:
-                lsdb[source] = message[4:]
+            if myversion > version:
+                pass
 
-                print(lsdb)
+            elif myversion >= version:
+
+                if version == myversion:
+                    if lsdb[source] != message[4:]:
+                        lsdb[source] = message[4:]
+                
+                else:
+                    if build_lsa.is_alive():
+                        if lsdb[source] != message[4:]:
+                            lsdb[source] = message[4:]
+                    else:
+                        lsdb["version"] = myversion + 1
+                        build_lsa.start()
             
-            elif source != myAddress and message[4] > 0:
+            else:
+                pass
+
+            if source != myAddress and message[4] > 0 and version >= myversion:
                 message[4] -= 1
                 print("repeating foreign LSA")
                 send(bytearray(message))
+        
 
 
         elif identifier == 255:
@@ -158,7 +170,7 @@ sock_send = register_socket(client_sock+"1")
 
 send_hello = threading.Thread(target=send_hello)
 listen = threading.Thread(target=multi_hop)
-send_lsa = threading.Thread(target=send_lsa)
+build_lsa = threading.Thread(target=send_lsa)
 
 threadLock = threading.Lock()
 
