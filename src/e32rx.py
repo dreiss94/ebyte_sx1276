@@ -66,10 +66,14 @@ def send_hello():
         send(barr)
         time.sleep(5)
         
-def send_lsa():
+def construct_lsdb():
+
+    # build own lsdb
 
     lsdb["version"] = lsdb["version"] + 1
+    lsdb[myAddress] = neighbours
 
+    # send LSA
     message = [254, myAddress, lsdb["version"], 5] # Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...
     message.extend(neighbours)
 
@@ -176,7 +180,7 @@ sock_send = register_socket(client_sock+"1")
 
 send_hello = threading.Thread(target=send_hello)
 listen = threading.Thread(target=multi_hop)
-build_lsa = threading.Thread(target=send_lsa)
+build_lsa = threading.Thread(target=construct_lsdb)
 
 threadLock = threading.Lock()
 
@@ -191,14 +195,13 @@ print("my ID", myAddress , "my Neighbours:", neighbours, "\n")
 
 time.sleep(10)
 
-print("starting send_lsa")
+print("starting to construct lsdb")
 if build_lsa.is_alive(): pass
 else:
-    lsdb["version"] = lsdb["version"] + 1
     build_lsa.start()
 
 build_lsa.join()
-print("send_lsa finished: lsbd is updated")
+print("lsdb constructing finished: lsbd is updated")
 
 print("LSDB:", lsdb)
 
