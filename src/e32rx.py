@@ -4,9 +4,21 @@ import socket
 import sys
 import os, os.path
 import time
-from routing import lsdb as lsdb
-from routing import routingTable as routingTable
+import threading
 from routing import myAddress as myAddress
+
+client_sock = "/home/pi/client"
+e32_sock = "/run/e32.socket"
+
+# fix socket permissions
+os.system("sudo chown -R pi " + e32_sock)
+os.system("sudo chmod -R u=rwx " + e32_sock)
+
+neighbours = []
+
+routingTable = {}
+
+lsdb = {"version" : 1}
 
 def close_sock():
     global client_sock
@@ -18,88 +30,158 @@ def close_sock():
     if os.path.exists(client_sock):
       os.remove(client_sock)
 
-client_sock = "/home/pi/client"
-e32_sock = "/run/e32.socket"
+def register_socket(s):
 
-if os.path.exists(client_sock):
-      os.remove(client_sock)
+    if os.path.exists(s):
+        os.remove(s)
 
-csock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-csock.bind(client_sock)
+    csock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    csock.bind(s)
 
-print("registering socket", e32_sock)
-csock.sendto(b'', e32_sock)
-(msg, address) = csock.recvfrom(10)
+    print("registering socket", e32_sock)
+    csock.sendto(b'', e32_sock)
+    (msg, address) = csock.recvfrom(10)
 
-if msg[0] != 0:
-    print("bad return ode exiting")
-    sys.exit(1)
-
-# row = 0
-
-# msg = b"listening"
-# command = bytearray([2, row, 3, len(msg)])
-# command = command + bytearray(msg)
-# print("sending", len(command), bytes(command))
-# csock.sendto(bytes(command), ssd1306_sock)
-# (msg, address) = csock.recvfrom(2)
-# if msg[1] != 0:
-#     print("bad value", msg[1], "at", msg[0])
-
-
-while True:
-    # receive from the e32
-    (msg, address) = csock.recvfrom(59)
-    print("received", len(msg), msg)
-
-    try:
-        message = [x for x in msg]
-        source = message[0]
-        identifier = message[2]
-    except:
-        pass
+    if msg[0] != 0:
+        print("bad return ode exiting")
+        sys.exit(1)
     
-    if identifier == myAddress:
+    return csock
 
-        # multi-hop
+def send(s, bytearray):
+    threadLock.acquire()
+    s.sendto(bytearray, e32_sock)
+    (bytes, address) = s.recvfrom(10)
+    print("return code", bytes[0])
+    threadLock.release()
+    
 
-        destination = message[1]
+def send_hello():
 
-        if destination == myAddress:
-            print("Message ", msg, " arrived at destination ", myAddress)
-        else:
-            fwd_message = [source, destination, routingTable[destination]]
-            barr = bytearray(fwd_message)
+    message = [255, myAddress] # 255, source
 
-            print("forwarding message", fwd_message)
-            csock.sendto(barr, e32_sock)
-            (bytes, address) = csock.recvfrom(10)
+    barr = bytearray(message)
+
+    for i in range(5):
+        print("sending", message)
+        send(sock_send, barr)
+        time.sleep(5)
+        
+def send_lsa():
+
+    lsdb["version"] = lsdb["version"] + 1
+
+    message = [254, myAddress, lsdb["version"]] # Indentifier, Source, Version, neighbour1, neighbour2, ...
+    message.extend(neighbours)
+
+    barr = bytearray(message)
+
+    for i in range(5):
+        print("sending", message)
+        send(sock_send, barr)
+        time.sleep(5)
+
+
+def multi_hop():
+
+    while True:
+        # receive from the e32
+
+
+        (msg, address) = sock_listen.recvfrom(59)
+        print("received", len(msg), msg)
+        
+        try:
+            message = [x for x in msg]
+            identifier = message[0]
+            source = message[1]
+            
+            # source = message[0]
+            # identifier = message[2]
+        except:
+            pass
+        
+        if identifier == myAddress:
+
+            # multi-hop
+            try:
+                destination = message[2]
+
+                if destination == myAddress:
+                    print("Message ", msg, " arrived at destination ", myAddress)
+                else:
+                    fwd_message = [routingTable[destination], source, destination]
+                    barr = bytearray(fwd_message)
+
+                    print("forwarding message", fwd_message)
+                    sock_send.sendto(barr, e32_sock)
+                    (bytes, address) = sock_send.recvfrom(10)
+                    print("return code", bytes[0])
+            
+            except:
+                pass
+        
+        elif identifier == 254:
+
+            # handle LSA [Indentifier, Source, Version, neighbour1, neighbour2, ...]
+
+            version = message[2]
+            
+            if version > lsdb["version"]:
+                lsdb["version"] = version
+                lsdb[source] = message[3:]
+
+                print(lsdb)
+            
+            elif version == lsdb["version"]:
+                lsdb[source] = message[3:]
+
+                print(lsdb)
+
+
+
+        elif identifier == 255:
+
+            # handle hello messages [255, source]
+            
+            if source not in neighbours:
+                neighbours.append(source)
+                print("neighbours updated:", neighbours)
+            
+            print("repeating hello packet", msg)
+            sock_send.sendto(msg, e32_sock)
+            (bytes, address) = sock_send.recvfrom(10)
             print("return code", bytes[0])
-    
-    elif identifier == 254:
 
-        # handle LSA [source]
-
-        version = message[1]
-        
-        if version != lsdb["version"]:
-            n1 = message[3]
-            n2 = message[4]
-            lsdb["version"] = version
-            lsdb[source] = [n1,n2]
-
-            print(lsdb)
-        
-        elif version == lsdb["version"]:
-            if source in lsdb:
+        else:
+            print("Message ", msg, " discarded because Im not next hop")
 
 
-    elif identifier == 255:
+sock_listen = register_socket(client_sock)
+sock_send = register_socket(client_sock+"1")
 
-        # handle hello messages [source, 255, 255]
-        
-        if source not in routingTable:
-            routingTable[source] = source
-            print("routing table updated, rT[%d] = %d " % (source, routingTable[source]))
-    else:
-        print("Message ", msg, " discarded because Im not next hop")
+send_hello = threading.Thread(target=send_hello)
+listen = threading.Thread(target=multi_hop)
+send_lsa = threading.Thread(target=send_lsa)
+
+threadLock = threading.Lock()
+
+print("starting send_hello")
+send_hello.start()
+print("starting listen")
+listen.start()
+
+send_hello.join()
+print("say_hi finished: list of neighbours is updated")
+
+
+print("starting send_lsa")
+send_lsa.start()
+
+send_lsa.join()
+print("send_hello finished: lsbd is updated")
+
+
+
+
+
