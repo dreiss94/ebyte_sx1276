@@ -48,14 +48,13 @@ def register_socket(s):
     
     return csock
 
-def send(s, bytearray):
+def send(bytearray):
     threadLock.acquire()
-    s.sendto(bytearray, e32_sock)
-    (bytes, address) = s.recvfrom(10)
+    sock_send.sendto(bytearray, e32_sock)
+    (bytes, address) = sock_send.recvfrom(10)
     print("return code", bytes[0])
     threadLock.release()
     
-
 def send_hello():
 
     message = [255, myAddress] # 255, source
@@ -64,21 +63,21 @@ def send_hello():
 
     for i in range(5):
         print("sending", message)
-        send(sock_send, barr)
+        send(barr)
         time.sleep(5)
         
 def send_lsa():
 
     lsdb["version"] = lsdb["version"] + 1
 
-    message = [254, myAddress, lsdb["version"]] # Indentifier, Source, Version, neighbour1, neighbour2, ...
+    message = [254, myAddress, lsdb["version"], 5] # Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...
     message.extend(neighbours)
 
     barr = bytearray(message)
 
     for i in range(5):
         print("sending", message)
-        send(sock_send, barr)
+        send(barr)
         time.sleep(5)
 
 
@@ -86,8 +85,6 @@ def multi_hop():
 
     while True:
         # receive from the e32
-
-
         (msg, address) = sock_listen.recvfrom(59)
         print("received", len(msg), msg)
         
@@ -123,21 +120,25 @@ def multi_hop():
         
         elif identifier == 254:
 
-            # handle LSA [Indentifier, Source, Version, neighbour1, neighbour2, ...]
+            # handle LSA [Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...]
 
             version = message[2]
             
             if version > lsdb["version"]:
                 lsdb["version"] = version
-                lsdb[source] = message[3:]
+                lsdb[source] = message[4:]
 
                 print(lsdb)
             
             elif version == lsdb["version"]:
-                lsdb[source] = message[3:]
+                lsdb[source] = message[4:]
 
                 print(lsdb)
-
+            
+            elif source != myAddress and message[4] > 0:
+                message[4] -= 1
+                print("repeating foreign LSA")
+                send(bytearray(message))
 
 
         elif identifier == 255:
@@ -147,11 +148,6 @@ def multi_hop():
             if source not in neighbours:
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
-            
-            print("repeating hello packet", msg)
-            sock_send.sendto(msg, e32_sock)
-            (bytes, address) = sock_send.recvfrom(10)
-            print("return code", bytes[0])
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
@@ -173,13 +169,17 @@ listen.start()
 
 send_hello.join()
 print("say_hi finished: list of neighbours is updated")
+print("my ID", myAddress , "my Neighbours:", neighbours, "\n")
 
+time.sleep(10)
 
 print("starting send_lsa")
 send_lsa.start()
 
 send_lsa.join()
 print("send_hello finished: lsbd is updated")
+
+print("LSDB:", lsdb)
 
 
 
