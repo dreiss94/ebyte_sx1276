@@ -145,7 +145,11 @@ def multi_hop():
                 
                 else:
                     if build_lsa.is_alive():
-                        if lsdb[source] != message[4:]:
+                    
+                        if source not in lsdb.keys():
+                            lsdb[source] = message[4:]
+
+                        elif lsdb[source] != message[4:]:
                             lsdb[source] = message[4:]
                     else:
                         lsdb["version"] = myversion + 1
