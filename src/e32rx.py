@@ -158,8 +158,8 @@ def multi_hop():
             else:
                 pass
 
-            if source != myAddress and message[4] > 0 and version >= myversion:
-                message[4] -= 1
+            if source != myAddress and message[3] > 0 and version >= myversion:
+                message[3] -= 1
                 print("repeating foreign LSA")
                 send(bytearray(message))
         
