@@ -6,6 +6,7 @@ import os, os.path
 import time
 import threading
 from routing import myAddress as myAddress
+from dijkstra import dijkstra
 
 client_sock = "/home/pi/client"
 e32_sock = "/run/e32.socket"
@@ -186,6 +187,7 @@ send_hello = threading.Thread(target=send_hello)
 listen = threading.Thread(target=multi_hop)
 build_lsa = threading.Thread(target=construct_lsdb)
 
+
 threadLock = threading.Lock()
 
 print("starting send_hello")
@@ -208,6 +210,19 @@ build_lsa.join()
 print("lsdb constructing finished: lsbd is updated")
 
 print("LSDB:", lsdb)
+
+time.sleep(10)
+
+threadLock.acquire()
+rt = dijkstra(lsdb)
+routingTable = rt
+threadLock.release()
+
+for key in routingTable.keys():
+    print("For Destination ", key, "the Next Hop is ", routingTable[key])
+
+
+
 
 
 
