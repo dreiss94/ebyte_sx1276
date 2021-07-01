@@ -1,7 +1,12 @@
-AC_INIT([e32], [1.3], [lloyd@lloydrochester.com])
+AC_INIT([e32], [1.7], [lloyd@lloydrochester.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-AC_CONFIG_SRCDIR([config.h.in])
-AC_CONFIG_HEADERS([config.h])
+
+AC_CONFIG_SRCDIR([src/config.h.in])
+AC_CONFIG_HEADERS([src/config.h])
+
+AC_DEFINE(_GPIO_M0_PIN, [23], [Default GPIO Pin for E32 Mode 0 Input])
+AC_DEFINE(_GPIO_M1_PIN, [24], [Default GPIO Pin for E32 Mode 1 Input])
+AC_DEFINE(_GPIO_AUX_PIN, [18], [Default GPIO Pin for E32 AUX Ouput])
 
 # Checks for programs.
 AC_PROG_CC
@@ -43,5 +48,6 @@ AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$with_systemdsystemunitdir" != "xno"])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 systemd/Makefile])
+                 systemd/Makefile
+                 test/Makefile])
 AC_OUTPUT

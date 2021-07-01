@@ -45,12 +45,13 @@ m4/lt~obsolete.m4(LIBDL)
 Makefile
 src/Makefile
 *.o
-src/.deps
+.deps
 config.h
 tags
 e32
 \#*#
 \.\#*
+<<<<<<< HEAD
 
 ../.vscode/
 .vscode/
@@ -58,3 +59,6 @@ e32
 *.pyc
 routing.py
 
+=======
+.vscode
+>>>>>>> 68aa223ad8684fd7e7dc79c6e06feae44d6701a4
