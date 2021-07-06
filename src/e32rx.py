@@ -7,7 +7,9 @@ import time
 import threading
 from routing import myAddress as myAddress
 from dijkstra import dijkstra
-from dict_hash import sha256
+from typing import Dict, Any
+import hashlib
+import json
 
 client_sock = "/home/pi/client"
 e32_sock = "/run/e32.socket"
@@ -20,7 +22,9 @@ neighbours = []
 
 routingTable = {}
 
-lsdb = {"version" : 1}
+serial_number = 0
+
+lsdb = {}
 
 def close_sock():
     global client_sock
@@ -72,11 +76,11 @@ def construct_lsdb():
 
     # build own lsdb
 
-    lsdb["version"] = lsdb["version"] + 1
+    # lsdb["version"] = lsdb["version"] + 1
     lsdb[myAddress] = neighbours
 
     # send LSA
-    message = [254, myAddress, lsdb["version"], 5] # Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...
+    message = [254, myAddress, dict_hash(lsdb), 5] # Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...
     message.extend(neighbours)
 
     barr = bytearray(message)
@@ -87,8 +91,13 @@ def construct_lsdb():
         time.sleep(10)
 
 
-def get_hash():
-    return sha256(lsdb)
+def dict_hash(dictionary: Dict[Any, Any]) -> str:
+    """SHA1 hash of a dictionary."""
+    dhash = hashlib.sha1()
+    # We need to sort arguments
+    encoded = json.dumps(dictionary, sort_keys=True).encode()
+    dhash.update(encoded)
+    return dhash.hexdigest()
 
 def multi_hop():
 
@@ -130,43 +139,52 @@ def multi_hop():
         
         elif identifier == 254:
 
-            # handle LSA [Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...]
+            # handle LSA [Indentifier, Source, Hash, TTD, neighbour1, neighbour2, ...]
 
-            version = message[2]
-            myversion = lsdb["version"]
+            my_hash = get_hash()
 
-            if myversion > version:
+            if my_hash == hash:
                 pass
 
-            elif myversion <= version:
-
-                if version == myversion:
-
-                    if source not in lsdb.keys():
-                        lsdb[source] = message[4:]
-
-                    elif lsdb[source] != message[4:]:
-                        lsdb[source] = message[4:]
-                
-                else:
-                    if build_lsa.is_alive():
-                    
-                        if source not in lsdb.keys():
-                            lsdb[source] = message[4:]
-
-                        elif lsdb[source] != message[4:]:
-                            lsdb[source] = message[4:]
-                    else:
-                        lsdb[source] = message[4:]
-                        build_lsa.start()
-            
             else:
-                pass
 
-            if source != myAddress and message[3] > 0 and version >= myversion:
-                message[3] -= 1
-                print("repeating foreign LSA")
-                send(bytearray(message))
+
+
+            # version = message[2]
+            # myversion = lsdb["version"]
+
+            # if myversion > version:
+            #     pass
+
+            # elif myversion <= version:
+
+            #     if version == myversion:
+
+            #         if source not in lsdb.keys():
+            #             lsdb[source] = message[4:]
+
+            #         elif lsdb[source] != message[4:]:
+            #             lsdb[source] = message[4:]
+                
+            #     else:
+            #         if build_lsa.is_alive():
+                    
+            #             if source not in lsdb.keys():
+            #                 lsdb[source] = message[4:]
+
+            #             elif lsdb[source] != message[4:]:
+            #                 lsdb[source] = message[4:]
+            #         else:
+            #             lsdb[source] = message[4:]
+            #             build_lsa.start()
+            
+            # else:
+            #     pass
+
+            # if source != myAddress and message[3] > 0 and version >= myversion:
+            #     message[3] -= 1
+            #     print("repeating foreign LSA")
+            #     send(bytearray(message))
         
 
 
