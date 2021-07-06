@@ -7,6 +7,7 @@ import time
 import threading
 from routing import myAddress as myAddress
 from dijkstra import dijkstra
+from dict_hash import sha256
 
 client_sock = "/home/pi/client"
 e32_sock = "/run/e32.socket"
@@ -85,6 +86,9 @@ def construct_lsdb():
         send(barr)
         time.sleep(10)
 
+
+def get_hash():
+    return sha256(lsdb)
 
 def multi_hop():
 
