@@ -616,18 +616,19 @@ e32_cmd_write_settings(struct E32 *dev, struct options *opts)
 
   info_output("original settings 0x");
   for(int i=0; i<6; i++)
-    info_output("%x", orig_settings[i]);
+    info_output("%02dx", orig_settings[i]);
   info_output("\n");
 
   info_output("writing settings 0x");
   for(int i=0; i<6; i++)
-    info_output("%x", opts->settings_write_input[i]);
+    info_output("%02x", opts->settings_write_input[i]);
   info_output("\n");
 
   if(dev->verbose)
     debug_output("writing settings command\n");
 
   bytes = write(dev->uart_fd, opts->settings_write_input, 6);
+  sleep(1);
   if(bytes == -1)
    return -1;
 
@@ -639,7 +640,7 @@ e32_cmd_write_settings(struct E32 *dev, struct options *opts)
 
   info_output("read settings 0x");
   for(int i=0; i<6; i++)
-    info_output("%x", dev->settings[i]);
+    info_output("%02x", dev->settings[i]);
   info_output("\n");
 
   return err;
