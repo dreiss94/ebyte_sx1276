@@ -71,16 +71,19 @@ def send_hello():
         print("sending", message)
         send(barr)
         time.sleep(5)
+
+def increase_serialnumber():
+    global serial_number
+    serial_number += 1
         
 def construct_lsdb():
+    """"builds Link State Database as a dictionary"""
 
-    # build own lsdb
-
-    # lsdb["version"] = lsdb["version"] + 1
+    increase_serialnumber()
     lsdb[myAddress] = neighbours
 
     # send LSA
-    message = [254, myAddress, dict_hash(lsdb), 5] # Indentifier, Source, Version, TTD, neighbour1, neighbour2, ...
+    message = [254, myAddress, 3] # Indentifier, Source, TTD, neighbour1, neighbour2, ...
     message.extend(neighbours)
 
     barr = bytearray(message)
@@ -117,7 +120,6 @@ def multi_hop():
             pass
         
         if identifier == myAddress:
-
             # multi-hop
             try:
                 destination = message[2]
@@ -138,60 +140,21 @@ def multi_hop():
         
         
         elif identifier == 254:
+            # handle LSA [Indentifier, Source, TTD, neighbour1, neighbour2, ...]
 
-            # handle LSA [Indentifier, Source, Hash, TTD, neighbour1, neighbour2, ...]
-
-            my_hash = get_hash()
-
-            if my_hash == hash:
-                pass
-
-            else:
-
-
-
-            # version = message[2]
-            # myversion = lsdb["version"]
-
-            # if myversion > version:
-            #     pass
-
-            # elif myversion <= version:
-
-            #     if version == myversion:
-
-            #         if source not in lsdb.keys():
-            #             lsdb[source] = message[4:]
-
-            #         elif lsdb[source] != message[4:]:
-            #             lsdb[source] = message[4:]
-                
-            #     else:
-            #         if build_lsa.is_alive():
-                    
-            #             if source not in lsdb.keys():
-            #                 lsdb[source] = message[4:]
-
-            #             elif lsdb[source] != message[4:]:
-            #                 lsdb[source] = message[4:]
-            #         else:
-            #             lsdb[source] = message[4:]
-            #             build_lsa.start()
+            if source not in lsdb.keys() or lsdb[source] != message[3:]:
+                lsdb[source] = message[3:]
+                increase_serialnumber()
             
-            # else:
-            #     pass
-
-            # if source != myAddress and message[3] > 0 and version >= myversion:
-            #     message[3] -= 1
-            #     print("repeating foreign LSA")
-            #     send(bytearray(message))
-        
-
-
-
+            if source != myAddress and message[2] > 0:
+                message[2] -= 1
+                print("repeating foreign LSA")
+                send(bytearray(message))
+            
+            if not build_lsa.is_alive():
+                build_lsa.start()
 
         elif identifier == 255:
-
             # handle hello messages [255, source]
             
             if source not in neighbours:
