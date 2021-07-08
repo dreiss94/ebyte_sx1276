@@ -110,6 +110,19 @@ def lsdb_set_entry(key, version, neighbours):
     lsdb[key] = value
 
 
+def lsdb_set_lsa(lsa):
+    """
+    Sets lsa to Link State Database
+    lsdb{address: [version, neighb1, neighb2, ... neighbN]}
+    """
+
+    global lsdb
+
+    value = lsa[2:]
+
+    lsdb[lsa[1]] = value
+
+
 def construct_lsdb():
     """"builds Link State Database as a dictionary"""
 
@@ -188,19 +201,14 @@ def multi_hop():
 
 
         elif identifier == 254:
-            # handle LSA [Indentifier, Source, TTD, neighbour1, neighbour2, ...]
+            # handle LSA [Indentifier, Key, version, neighbour1, neighbour2, ...]
 
-            if source not in lsdb.keys() or lsdb[source] != message[3:]:
-                lsdb[source] = message[3:]
-                increase_serialnumber()
-            
-            if source != myAddress and message[2] > 0:
-                message[2] -= 1
-                print("repeating foreign LSA")
-                send(bytearray(message))
-            
-            if not build_lsa.is_alive():
-                build_lsa.start()
+            if message[1] != myAddress:
+                # only gather information about foreign nodes
+
+                if message[1] not in lsdb.keys() or lsdb[message[1]][0] < message[2]:
+                    lsdb_set_lsa(message)
+
 
         elif identifier == 255:
             # handle hello messages [255, source, counter, hash]
