@@ -86,7 +86,17 @@ def send_hello() -> int:
 def increase_serialnumber():
     global serial_number
     serial_number += 1
-        
+
+def request_LSA(target):
+    """"Requests LSA at node that has different hash"""
+
+    message = [253, myAddress, target] 
+    barr = bytearray(message)
+    
+    print("requesting LSA", message)
+    send(barr)
+
+
 def construct_lsdb():
     """"builds Link State Database as a dictionary"""
 
@@ -167,16 +177,14 @@ def multi_hop():
 
         elif identifier == 255:
             # handle hello messages [255, source, counter, hash]
-
-            global serial_number
             
             if source not in neighbours:
-                serial_number += 1
+                increase_serialnumber()
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
             
-            # if message[3] != dict_hash(lsdb):
-                # request LSA exchange
+            if message[3] != dict_hash(lsdb):
+                request_LSA(source)
             
             # gather packets lost stats
 
