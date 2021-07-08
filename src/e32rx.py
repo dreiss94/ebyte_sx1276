@@ -61,16 +61,25 @@ def send(bytearray):
     print("return code", bytes[0])
     threadLock.release()
     
-def send_hello():
+def send_hello() -> int:
+    """
+    send Hello message
+    Structure: [255, source, counter, beginning_of_hash]
+    Timeout: 5s
+    """
+    counter = 0
+    while True:
+        
+        hash = dict_hash(lsdb)[:3]
+        
+        message = [255, myAddress, counter, hash] # [255, source, counter, beginning_of_hash]
 
-    message = [255, myAddress] # 255, source
+        barr = bytearray(message)
 
-    barr = bytearray(message)
-
-    for i in range(5):
-        print("sending", message)
+        print("sending hello", message)
         send(barr)
         time.sleep(5)
+        counter += 1
 
 def increase_serialnumber():
     global serial_number
