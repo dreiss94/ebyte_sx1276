@@ -173,9 +173,18 @@ def multi_hop():
                 pass
         
         
-        # elif identifier == 253:
+        elif identifier == 253:
             # handle LSA request: send all entries in LSDB
 
+            print("answering LSA Request")
+
+            for key, value in lsdb.item():
+
+                message = [254, key, value[0]]
+                message.extend(value[1:])
+                print("sending", message)
+                send(bytearray(message))
+                time.sleep(1)
 
 
         elif identifier == 254:
