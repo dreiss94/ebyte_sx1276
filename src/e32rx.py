@@ -22,7 +22,7 @@ neighbours = []
 
 routingTable = {}
 
-serial_number = 0
+serial_number = 10
 
 lsdb = {}
 
@@ -167,8 +167,11 @@ def multi_hop():
 
         elif identifier == 255:
             # handle hello messages [255, source, counter, hash]
+
+            global serial_number
             
             if source not in neighbours:
+                serial_number += 1
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
             
