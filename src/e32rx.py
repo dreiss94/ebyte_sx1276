@@ -65,20 +65,22 @@ def send_hello() -> int:
     """
     send Hello message
     Structure: [255, source, counter, beginning_of_hash]
-    Timeout: 5s
+    Timeout: 10s
     """
     counter = 0
     while True:
         
+        # [255, source, counter, beginning_of_hash]
         hash = dict_hash(lsdb)[:3]
-        
-        message = [255, myAddress, counter, hash] # [255, source, counter, beginning_of_hash]
 
+        message = [255, myAddress, counter]
         barr = bytearray(message)
+        
+        barr.extend(hash)
 
-        print("sending hello", message)
+        print("sending hello", barr)
         send(barr)
-        time.sleep(5)
+        time.sleep(10)
         counter += 1
 
 def increase_serialnumber():
@@ -103,13 +105,13 @@ def construct_lsdb():
         time.sleep(10)
 
 
-def dict_hash(dictionary: Dict[Any, Any]) -> str:
+def dict_hash(dictionary: Dict[Any, Any]) -> bytes:
     """SHA1 hash of a dictionary."""
     dhash = hashlib.sha1()
     # We need to sort arguments
     encoded = json.dumps(dictionary, sort_keys=True).encode()
     dhash.update(encoded)
-    return dhash.hexdigest()
+    return dhash.digest()
 
 def multi_hop():
 
@@ -186,6 +188,9 @@ threadLock = threading.Lock()
 
 print("starting send_hello")
 send_hello.start()
+# time.sleep(20)
+
+
 print("starting listen")
 listen.start()
 
