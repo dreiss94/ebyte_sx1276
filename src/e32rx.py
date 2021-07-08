@@ -80,8 +80,8 @@ def send_hello() -> int:
 
         print("sending hello", barr)
         send(barr)
+        counter += 1        
         time.sleep(10)
-        counter += 1
 
 def increase_serialnumber():
     global serial_number
@@ -213,8 +213,8 @@ def multi_hop():
         elif identifier == 255:
             # handle hello messages [255, source, counter, hash]
             
-            if source not in neighbours:
-                global neighbours
+            global neighbours
+            if source not in neighbours:  
                 increase_serialnumber()
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
@@ -234,44 +234,41 @@ sock_send = register_socket(client_sock+"1")
 
 send_hello = threading.Thread(target=send_hello)
 listen = threading.Thread(target=multi_hop)
-build_lsa = threading.Thread(target=construct_lsdb)
+# build_lsa = threading.Thread(target=construct_lsdb)
 
 
 threadLock = threading.Lock()
 
 print("starting send_hello")
 send_hello.start()
-# time.sleep(20)
 
+time.sleep(3)
 
 print("starting listen")
 listen.start()
 
-send_hello.join()
-print("say_hi finished: list of neighbours is updated")
-print("my ID", myAddress , "my Neighbours:", neighbours, "\n")
 
-time.sleep(10)
+time.sleep(30)
 
-print("starting to construct lsdb")
-if build_lsa.is_alive(): pass
-else:
-    build_lsa.start()
+# print("starting to construct lsdb")
+# if build_lsa.is_alive(): pass
+# else:
+#     build_lsa.start()
 
-build_lsa.join()
-print("lsdb constructing finished: lsbd is updated")
+# build_lsa.join()
+# print("lsdb constructing finished: lsbd is updated")
 
 print("LSDB:", lsdb)
 
 time.sleep(10)
 
-threadLock.acquire()
-rt = dijkstra(lsdb)
-routingTable = rt
-threadLock.release()
+# threadLock.acquire()
+# rt = dijkstra(lsdb)
+# routingTable = rt
+# threadLock.release()
 
-for key in routingTable.keys():
-    print("For Destination ", key, "the Next Hop is ", routingTable[key])
+# for key in routingTable.keys():
+#     print("For Destination ", key, "the Next Hop is ", routingTable[key])
 
 
 
