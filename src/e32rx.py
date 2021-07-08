@@ -97,6 +97,19 @@ def request_LSA(target):
     send(barr)
 
 
+def lsdb_set_entry(key, version, neighbours):
+    """
+    Sets entry to Link State Database
+    lsdb{address: [version, neighb1, neighb2, ... neighbN]}
+    """
+
+    global lsdb
+
+    value = neighbours.insert(0, version)
+
+    lsdb[key] = value
+
+
 def construct_lsdb():
     """"builds Link State Database as a dictionary"""
 
@@ -160,6 +173,11 @@ def multi_hop():
                 pass
         
         
+        # elif identifier == 253:
+            # handle LSA request: send all entries in LSDB
+
+
+
         elif identifier == 254:
             # handle LSA [Indentifier, Source, TTD, neighbour1, neighbour2, ...]
 
@@ -179,11 +197,13 @@ def multi_hop():
             # handle hello messages [255, source, counter, hash]
             
             if source not in neighbours:
+                global neighbours
                 increase_serialnumber()
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
+                lsdb_set_entry(source, serial_number, neighbours)
             
-            if message[3] != dict_hash(lsdb):
+            if int.from_bytes(dict_hash(lsdb)[:1], "big") != message[3]:
                 request_LSA(source)
             
             # gather packets lost stats
