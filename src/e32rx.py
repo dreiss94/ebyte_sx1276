@@ -71,7 +71,7 @@ def send_hello() -> int:
     while True:
         
         # [255, source, counter, beginning_of_hash]
-        hash = dict_hash(lsdb)[:3]
+        hash = dict_hash(lsdb)[:1]
 
         message = [255, myAddress, counter]
         barr = bytearray(message)
@@ -166,11 +166,16 @@ def multi_hop():
                 build_lsa.start()
 
         elif identifier == 255:
-            # handle hello messages [255, source]
+            # handle hello messages [255, source, counter, hash]
             
             if source not in neighbours:
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
+            
+            # if message[3] != dict_hash(lsdb):
+                # request LSA exchange
+            
+            # gather packets lost stats
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
