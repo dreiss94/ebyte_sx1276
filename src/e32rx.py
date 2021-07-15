@@ -188,7 +188,7 @@ def dict_hash() -> bytes:
     dhash.update(encoded)
     return dhash.digest()
 
-def multi_hop():
+def listen():
 
     while True:
         # receive from the e32
@@ -236,16 +236,16 @@ def multi_hop():
                 message.extend(value[1:])
                 print("sending", message)
                 send(bytearray(message))
-                time.sleep(2)
+                time.sleep(3)
 
 
         elif identifier == 254:
-            # handle LSA [Indentifier, Key, version, neighbour1, neighbour2, ...]
+            # handle LSA [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
 
-            if message[1] != myAddress:
+            if source != myAddress:
                 # only gather information about foreign nodes
 
-                if message[1] not in lsdb.keys() or lsdb[message[1]][0] < message[2]:
+                if source not in lsdb.keys() or lsdb[source][0] < message[2]:
                     lsdb_set_lsa(message)
 
 
@@ -278,7 +278,7 @@ sock_listen = register_socket(client_sock)
 sock_send = register_socket(client_sock+"1")
 
 send_hello = threading.Thread(target=send_hello)
-listen = threading.Thread(target=multi_hop)
+listen = threading.Thread(target=listen)
 # build_lsa = threading.Thread(target=construct_lsdb)
 
 
