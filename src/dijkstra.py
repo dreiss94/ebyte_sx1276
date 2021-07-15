@@ -11,17 +11,16 @@ from routing import myAddress
 
 def get_adjacency_matrix(lsdb):
 	
-	# LSDB = {"version" : int,
-	# 	0 : [1],
-	# 	1 : [0]}
+	# LSDB = {
+	# 	0 : [version, 1],
+	# 	1 : [version, 0]}
 
-	keys = list(lsdb.keys())
-	k = keys[1:]
+	k = list(lsdb.keys())
 
 	M = np.full([len(k), len(k)], 999)
 
 	for i in k:
-		n = lsdb[i]
+		n = lsdb[i][1:]
 		for j in n:
 			M[i,j] = 1
 			M[j,i] = 1
