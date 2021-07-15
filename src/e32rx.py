@@ -70,13 +70,13 @@ def send_hello() -> int:
     """
     send Hello message
     Structure: [255, source, counter, beginning_of_hash]
-    Timeout: 10s
+    Timeout: 30s
     """
     counter = 0
     while True:
         
         # [255, source, counter, beginning_of_hash]
-        hash = dict_hash(lsdb)[:1]
+        hash = dict_hash()[:1]
 
         message = [255, myAddress, counter]
         barr = bytearray(message)
@@ -88,12 +88,34 @@ def send_hello() -> int:
         counter += 1        
         time.sleep(30)
 
+def send_hello_once() -> int:
+    """
+    send Hello message once
+    Structure: [255, source, counter]
+    """
+    counter = -1
+        
+    # [255, source, counter, beginning_of_hash]
+
+    message = [255, myAddress, counter]
+    barr = bytearray(message)
+
+    print("sending extra hello", barr)
+    send(barr)
+
 def increase_serialnumber():
     global serial_number
     serial_number += 1
 
 def request_LSA(target):
     """"Requests LSA at node that has different hash"""
+
+    # send hello first (timeout = 30s) to make sure other node has entry
+    time.sleep(5)
+
+    send_hello_once()
+
+    time.sleep(5)
 
     message = [253, myAddress, target] 
     barr = bytearray(message)
@@ -194,7 +216,7 @@ def multi_hop():
         
         elif identifier == 253:
             # handle LSA request: send all entries in LSDB
-
+            time.sleep(1)
             print("answering LSA Request")
 
             for key, value in lsdb.items():
@@ -203,7 +225,7 @@ def multi_hop():
                 message.extend(value[1:])
                 print("sending", message)
                 send(bytearray(message))
-                time.sleep(1)
+                time.sleep(2)
 
 
         elif identifier == 254:
@@ -226,11 +248,12 @@ def multi_hop():
                 print("neighbours updated:", neighbours)
                 lsdb_set_entry(source, serial_number, neighbours)
             
-            # print("myhash", int.from_bytes(dict_hash(lsdb)[:1], "big"), "vs", message[3], "other hash")
             
-            # if int.from_bytes(dict_hash(lsdb)[:1], "big") != message[3]:
-            #     request_LSA(source)
-            
+            if len(message) > 3:
+                print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
+                if int.from_bytes(dict_hash()[:1], "big") != message[3]:
+                    request_LSA(source)
+                
             # gather packets lost stats
 
         else:
@@ -268,7 +291,7 @@ time.sleep(30)
 
 for i in range(20):
     print("LSDB:", lsdb)
-    time.sleep(10)
+    time.sleep(70)
 
 # threadLock.acquire()
 # rt = dijkstra(lsdb)
