@@ -93,11 +93,10 @@ def send_hello_once() -> int:
     send Hello message once
     Structure: [255, source, counter]
     """
-    counter = -1
         
     # [255, source, counter, beginning_of_hash]
 
-    message = [255, myAddress, counter]
+    message = [255, myAddress]
     barr = bytearray(message)
 
     print("sending extra hello", barr)
@@ -123,6 +122,18 @@ def request_LSA(target):
     print("requesting LSA", message)
     send(barr)
 
+def update_own_lsdb_entry():
+    """
+    updates entry in LSDB: key == myAddress
+    lsdb{address: [version, neighb1, neighb2, ... neighbN]}
+    """
+
+    global lsdb
+
+    neighbours.insert(0, serial_number)
+
+    lsdb[myAddress] = neighbours
+    print(lsdb)
 
 def lsdb_set_entry(key, version, neighbours):
     """
@@ -246,7 +257,10 @@ def multi_hop():
                 increase_serialnumber()
                 neighbours.append(source)
                 print("neighbours updated:", neighbours)
-                lsdb_set_entry(source, serial_number, neighbours)
+                # update own LSDB enty
+                update_own_lsdb_entry()
+                # lsdb_set_entry(myAddress, serial_number, neighbours)
+                # lsdb_set_entry(source, serial_number, neighbours)
             
             
             if len(message) > 3:
