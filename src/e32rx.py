@@ -26,6 +26,8 @@ routingTable = {}
 
 serial_number = 10
 
+hash_difference = False
+
 lsdb = {}
 
 def close_sock():
@@ -144,11 +146,12 @@ def construct_lsdb():
         time.sleep(10)
 
 
-def dict_hash(dictionary: Dict[Any, Any]) -> bytes:
-    """SHA1 hash of a dictionary."""
+def dict_hash() -> bytes:
+    """SHA1 hash of dictionary LSDB."""
     dhash = hashlib.sha1()
     # We need to sort arguments
-    encoded = json.dumps(dictionary, sort_keys=True).encode()
+    global lsdb
+    encoded = json.dumps(lsdb, sort_keys=True).encode()
     dhash.update(encoded)
     return dhash.digest()
 
@@ -223,7 +226,7 @@ def multi_hop():
                 print("neighbours updated:", neighbours)
                 lsdb_set_entry(source, serial_number, neighbours)
             
-            print("myhash", int.from_bytes(dict_hash(lsdb)[:1], "big"), "vs", message[3], "other hash")
+            # print("myhash", int.from_bytes(dict_hash(lsdb)[:1], "big"), "vs", message[3], "other hash")
             
             # if int.from_bytes(dict_hash(lsdb)[:1], "big") != message[3]:
             #     request_LSA(source)
