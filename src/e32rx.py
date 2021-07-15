@@ -20,11 +20,11 @@ os.system("sudo systemctl start e32")
 os.system("sudo chown -R pi " + e32_sock)
 os.system("sudo chmod -R u=rwx " + e32_sock)
 
-neighbours = []
-
-routingTable = {}
 
 serial_number = 10
+neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
+
+routingTable = {}
 
 hash_difference = False
 
@@ -130,27 +130,15 @@ def update_own_lsdb_entry():
 
     global lsdb
 
-    neighbours.insert(0, serial_number)
+    neighbours[0] = serial_number
 
     lsdb[myAddress] = neighbours
     print(lsdb)
 
-def lsdb_set_entry(key, version, neighbours):
-    """
-    Sets entry to Link State Database
-    lsdb{address: [version, neighb1, neighb2, ... neighbN]}
-    """
-
-    global lsdb
-
-    value = neighbours.insert(0, version)
-
-    lsdb[key] = value
-
-
 def lsdb_set_lsa(lsa):
     """
     Sets lsa to Link State Database
+    LSA: [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
     lsdb{address: [version, neighb1, neighb2, ... neighbN]}
     """
 
@@ -159,6 +147,7 @@ def lsdb_set_lsa(lsa):
     value = lsa[2:]
 
     lsdb[lsa[1]] = value
+    print(lsdb)
 
 
 def construct_lsdb():
