@@ -30,15 +30,6 @@ hash_difference = False
 
 lsdb = {}
 
-def close_sock():
-    global client_sock
-
-    print("closing client socket")
-
-    client_sock.close()
-
-    if os.path.exists(client_sock):
-      os.remove(client_sock)
 
 def register_socket(s):
 
@@ -266,8 +257,8 @@ def listen():
 sock_listen = register_socket(client_sock)
 sock_send = register_socket(client_sock+"1")
 
-send_hello = threading.Thread(target=send_hello)
-listen = threading.Thread(target=listen)
+send_hello = threading.Thread(target=send_hello, daemon = True)
+listen = threading.Thread(target=listen, daemon = True)
 # build_lsa = threading.Thread(target=construct_lsdb)
 
 
@@ -282,7 +273,7 @@ print("starting listen")
 listen.start()
 
 
-time.sleep(30)
+time.sleep(10)
 
 # print("starting to construct lsdb")
 # if build_lsa.is_alive(): pass
@@ -292,9 +283,23 @@ time.sleep(30)
 # build_lsa.join()
 # print("lsdb constructing finished: lsbd is updated")
 
-for i in range(20):
+for i in range(3):
     print("LSDB:", lsdb)
-    time.sleep(70)
+    time.sleep(5)
+
+
+sock_listen.close()
+sock_send.close()
+
+if os.path.exists(client_sock):
+    os.remove(client_sock)
+
+if os.path.exists(client_sock+"1"):
+    os.remove(client_sock+"1")
+
+
+sys.exit()
+
 
 # threadLock.acquire()
 # rt = dijkstra(lsdb)
