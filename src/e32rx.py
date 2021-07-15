@@ -51,6 +51,7 @@ def register_socket(s):
     return csock
 
 def send(bytearray):
+    """Sends a bytearray to the SEND socket"""
     threadLock.acquire()
     sock_send.sendto(bytearray, e32_sock)
     (bytes, address) = sock_send.recvfrom(10)
@@ -94,6 +95,7 @@ def send_hello_once() -> int:
     send(barr)
 
 def increase_serialnumber():
+    """Increments version of neighbour-list by 1"""
     global serial_number
     serial_number += 1
 
@@ -139,25 +141,6 @@ def lsdb_set_lsa(lsa):
 
     lsdb[lsa[1]] = value
     print(lsdb)
-
-
-def construct_lsdb():
-    """"builds Link State Database as a dictionary"""
-
-    increase_serialnumber()
-    lsdb[myAddress] = neighbours
-
-    # send LSA
-    message = [254, myAddress, 3] # Indentifier, Source, TTD, neighbour1, neighbour2, ...
-    message.extend(neighbours)
-
-    barr = bytearray(message)
-
-    for i in range(5):
-        print("sending", message)
-        send(barr)
-        time.sleep(10)
-
 
 def dict_hash() -> bytes:
     """SHA1 hash of dictionary LSDB."""
@@ -275,19 +258,13 @@ listen.start()
 
 time.sleep(10)
 
-# print("starting to construct lsdb")
-# if build_lsa.is_alive(): pass
-# else:
-#     build_lsa.start()
-
-# build_lsa.join()
-# print("lsdb constructing finished: lsbd is updated")
 
 for i in range(3):
     print("LSDB:", lsdb)
-    time.sleep(5)
+    time.sleep(60)
 
 
+# cleanup
 sock_listen.close()
 sock_send.close()
 
@@ -297,6 +274,8 @@ if os.path.exists(client_sock):
 if os.path.exists(client_sock+"1"):
     os.remove(client_sock+"1")
 
+
+os.system("sudo systemctl start e32")
 
 sys.exit()
 
