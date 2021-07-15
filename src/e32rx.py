@@ -15,6 +15,8 @@ client_sock = "/home/pi/client"
 e32_sock = "/run/e32.socket"
 
 # fix socket permissions
+os.system("sudo systemctl daemon-reload")
+os.system("sudo systemctl start e32")
 os.system("sudo chown -R pi " + e32_sock)
 os.system("sudo chmod -R u=rwx " + e32_sock)
 
@@ -44,12 +46,13 @@ def register_socket(s):
     csock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     csock.bind(s)
 
-    print("registering socket", e32_sock)
+    print("registering socket", s)
     csock.sendto(b'', e32_sock)
     (msg, address) = csock.recvfrom(10)
+    print("return code", msg[0])
 
     if msg[0] != 0:
-        print("bad return ode exiting")
+        print("bad return code exiting")
         sys.exit(1)
     
     return csock
@@ -81,7 +84,7 @@ def send_hello() -> int:
         print("sending hello", barr)
         send(barr)
         counter += 1        
-        time.sleep(10)
+        time.sleep(30)
 
 def increase_serialnumber():
     global serial_number
@@ -191,7 +194,7 @@ def multi_hop():
 
             print("answering LSA Request")
 
-            for key, value in lsdb.item():
+            for key, value in lsdb.items():
 
                 message = [254, key, value[0]]
                 message.extend(value[1:])
@@ -220,8 +223,10 @@ def multi_hop():
                 print("neighbours updated:", neighbours)
                 lsdb_set_entry(source, serial_number, neighbours)
             
-            if int.from_bytes(dict_hash(lsdb)[:1], "big") != message[3]:
-                request_LSA(source)
+            print("myhash", int.from_bytes(dict_hash(lsdb)[:1], "big"), "vs", message[3], "other hash")
+            
+            # if int.from_bytes(dict_hash(lsdb)[:1], "big") != message[3]:
+            #     request_LSA(source)
             
             # gather packets lost stats
 
@@ -258,9 +263,9 @@ time.sleep(30)
 # build_lsa.join()
 # print("lsdb constructing finished: lsbd is updated")
 
-print("LSDB:", lsdb)
-
-time.sleep(10)
+for i in range(20):
+    print("LSDB:", lsdb)
+    time.sleep(10)
 
 # threadLock.acquire()
 # rt = dijkstra(lsdb)
