@@ -30,6 +30,10 @@ hash_difference = False
 
 lsdb = {}
 
+current_adr = 2
+
+joining_nodes = []
+
 
 def register_socket(s):
 
@@ -50,6 +54,11 @@ def register_socket(s):
     
     return csock
 
+def set_adr(adr):
+    """sets current_adr to adr"""
+    global current_adr
+    current_adr = adr
+
 def send(bytearray):
     """Sends a bytearray to the SEND socket"""
     threadLock.acquire()
@@ -58,40 +67,70 @@ def send(bytearray):
     print("return code", bytes[0])
     threadLock.release()
     
-def send_hello() -> int:
+def send_hello():
     """
     send Hello message
     Structure: [255, source, counter, beginning_of_hash]
     Timeout: 30s
+    every 10th message is on rendez-vous channel at 0.3kbps 
     """
-    counter = 0
+    counter = 1
     while True:
         
-        # [255, source, counter, beginning_of_hash]
-        hash = dict_hash()[:1]
+        if (counter % 10) == 0:
+            # change to rendez-vous channel
+            print("changing to rendez-vous channel")
 
-        message = [255, myAddress, counter]
-        barr = bytearray(message)
-        
-        barr.extend(hash)
+            # change air data rate to 300bps
 
-        print("sending hello", barr)
-        send(barr)
-        counter += 1        
-        time.sleep(30)
+            # stay on rendez-vous for 2 mins to gather information if node wants to join
+            for i in range(1,4):
 
-def send_hello_once() -> int:
+                # send hello: [255, source, current air data rate]
+                message = [255, 255, current_adr]
+
+                time.sleep(25)
+
+        else:
+            
+            # [255, source, counter, beginning_of_hash]
+            hash = dict_hash()[:1]
+
+            message = [255, myAddress, counter]
+            barr = bytearray(message)
+            
+            barr.extend(hash)
+
+            print("sending hello", barr)
+            send(barr)
+            counter += 1        
+            time.sleep(30)
+
+def send_hello_once():
     """
     send Hello message once
-    Structure: [255, source, counter]
+    Structure:  [255, source]
     """
-        
+
     # [255, source, counter, beginning_of_hash]
 
     message = [255, myAddress]
     barr = bytearray(message)
 
     print("sending extra hello", barr)
+    send(barr)
+
+def send_ack():
+    """
+    send Hello message once
+    Structure: [255, 255, 255, Source]
+    """
+    # send ack to hello in rendez-vous channel
+    # [255, 255, Source]
+    message = [255, 255, 255, myAddress]
+    barr = bytearray(message)
+
+    print("sending ack", barr)
     send(barr)
 
 def increase_serialnumber():
@@ -150,6 +189,10 @@ def dict_hash() -> bytes:
     encoded = json.dumps(lsdb, sort_keys=True).encode()
     dhash.update(encoded)
     return dhash.digest()
+
+def elect_controller() -> int:
+    controller = max(lsdb.keys())
+    return controller
 
 def listen():
 
@@ -214,24 +257,41 @@ def listen():
 
         elif identifier == 255:
             # handle hello messages [255, source, counter, hash]
-            
-            global neighbours
-            if source not in neighbours:  
-                increase_serialnumber()
-                neighbours.append(source)
-                print("neighbours updated:", neighbours)
-                # update own LSDB enty
-                update_own_lsdb_entry()
-                # lsdb_set_entry(myAddress, serial_number, neighbours)
-                # lsdb_set_entry(source, serial_number, neighbours)
-            
-            
-            if len(message) > 3:
-                print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
-                if int.from_bytes(dict_hash()[:1], "big") != message[3]:
-                    request_LSA(source)
+
+            if source == 255:
+
+                if message[2] == 255:
+                    # handle rendez-vous ack [255, 255, 255, Source]
+                    global joining_nodes
+                    joining_nodes.append(message[3])
+
                 
-            # gather packets lost stats
+                else:
+                    # handle rendezvous hello [255, 255, current_adr]
+                    print("received hello on rendezvous")
+                    
+                    # save channel and let channel advertiser know, that I want to join
+                    set_adr(message[2])
+                    send_ack()
+
+            else:
+                global neighbours
+                if source not in neighbours:  
+                    increase_serialnumber()
+                    neighbours.append(source)
+                    print("neighbours updated:", neighbours)
+                    # update own LSDB enty
+                    update_own_lsdb_entry()
+                    # lsdb_set_entry(myAddress, serial_number, neighbours)
+                    # lsdb_set_entry(source, serial_number, neighbours)
+                
+                
+                if len(message) > 3:
+                    print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
+                    if int.from_bytes(dict_hash()[:1], "big") != message[3]:
+                        request_LSA(source)
+                    
+                # gather packets lost stats
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
@@ -275,7 +335,7 @@ if os.path.exists(client_sock+"1"):
     os.remove(client_sock+"1")
 
 
-os.system("sudo systemctl start e32")
+os.system("sudo systemctl stop e32")
 
 sys.exit()
 
