@@ -26,6 +26,7 @@ neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 hello_counter = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
 
+controller = -1
 
 routingTable = {}
 
@@ -194,8 +195,27 @@ def dict_hash() -> bytes:
     return dhash.digest()
 
 def elect_controller() -> int:
-    controller = max(lsdb.keys())
+    """
+    elects controller with highest ID in LSDB
+    returns ID
+    """
+    try:
+        controller = max(lsdb.keys())
+    except:
+        controller = -1
     return controller
+
+def send_controller():
+    """
+    send packets received ratios to controller in multi-hop manner
+    """
+
+    next_hop = routingTable[controller]
+    for i in range(1, len(neighbours)):
+        # [next-hop,source, destination, payload]
+        msg = [next_hop, myAddress, controller, neighbours[i], hello_percentage[i]]
+
+
 
 def listen():
 
@@ -301,7 +321,7 @@ def listen():
                 hello_counter[index] += 1
                 # update hello_received
                 global hello_percentage
-                hello_percentage[index] = hello_counter[index] / message[2]
+                hello_percentage[index] = 100 * hello_counter[index] / message[2]
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
