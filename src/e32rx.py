@@ -23,6 +23,9 @@ os.system("sudo chmod -R u=rwx " + e32_sock)
 
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
+hello_counter = [-1, 0, 0, 0]
+hello_percentage = [-1, -1, -1, -1]
+
 
 routingTable = {}
 
@@ -292,6 +295,13 @@ def listen():
                         request_LSA(source)
                     
                 # gather packets lost stats
+                index = neighbours.index(source)
+                # update hello_counter
+                global hello_counter
+                hello_counter[index] += 1
+                # update hello_received
+                global hello_percentage
+                hello_percentage[index] = hello_counter[index] / message[2]
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
