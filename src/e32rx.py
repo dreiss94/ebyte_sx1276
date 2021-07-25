@@ -214,7 +214,10 @@ def send_controller():
     for i in range(1, len(neighbours)):
         # [next-hop,source, destination, payload]
         msg = [next_hop, myAddress, controller, neighbours[i], hello_percentage[i]]
-
+        barr = bytearray(msg)    
+        print("Sending stats to controller", msg)
+        send(barr)
+        time.sleep(3)
 
 
 def listen():
