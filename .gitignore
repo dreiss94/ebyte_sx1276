@@ -10,21 +10,23 @@ Makefile.in
 # http://www.gnu.org/software/autoconf
 
 autom4te.cache
-/autoscan.log
+autoscan.log
 /autoscan-*.log
 /aclocal.m4
 /compile
 /config.guess
-/config.h.in
+config.h.in
 /config.log
+/config.scan
 /config.status
 /config.sub
 /configure
-/configure.scan
+configure.scan
 /depcomp
 /install-sh
 /missing
-/stamp-h1
+null.d
+stamp-h1
 
 # https://www.gnu.org/software/libtool/
 
@@ -51,14 +53,11 @@ tags
 e32
 \#*#
 \.\#*
-<<<<<<< HEAD
+
+/e32-*.tar.gz
 
 ../.vscode/
 .vscode/
 *.pyo
 *.pyc
 routing.py
-
-=======
-.vscode
->>>>>>> 68aa223ad8684fd7e7dc79c6e06feae44d6701a4
