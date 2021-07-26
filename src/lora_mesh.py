@@ -12,7 +12,8 @@ import hashlib
 import json
 
 client_sock = "/home/pi/client"
-e32_sock = "/run/e32.socket"
+e32_sock = "/run/e32.data"
+e32_control = "/run/e32.control"
 
 # fix socket permissions
 os.system("sudo systemctl daemon-reload")
@@ -62,6 +63,23 @@ def set_adr(adr):
     """sets current_adr to adr"""
     global current_adr
     current_adr = adr
+
+def change_adr(adr):
+    """ get the settings, change air data rate"""
+
+    sock_send.sendto(b's', e32_control)
+    (bytes, address) = sock_send.recvfrom(6)
+
+    bytes_new = bytearray(bytes)  # make it mutable
+
+    # change the air_data_rate
+    bytes_new[4] = adr
+
+    # change the settings
+    sock_send.sendto(bytes_new, e32_control)
+    (bytes, address) = sock_send.recvfrom(6)
+    time.sleep()
+
 
 def send(bytearray):
     """Sends a bytearray to the SEND socket"""
