@@ -35,7 +35,7 @@ hash_difference = False
 
 lsdb = {}
 
-current_adr = 2
+current_adr = 0x1a # default (2.4kbps)
 
 joining_nodes = []
 
@@ -59,10 +59,17 @@ def register_socket(s):
     
     return csock
 
+
 def set_adr(adr):
     """sets current_adr to adr"""
     global current_adr
     current_adr = adr
+
+def get_adr() -> bytes:
+    """get current air data rate setting"""
+    sock_send.sendto(b's', e32_control)
+    (bytes, address) = sock_send.recvfrom(6)
+    return bytes[3]
 
 def change_adr(adr):
     """ get the settings, change air data rate"""
@@ -73,12 +80,20 @@ def change_adr(adr):
     bytes_new = bytearray(bytes)  # make it mutable
 
     # change the air_data_rate
-    bytes_new[4] = adr
+    bytes_new[3] = adr
+    bytes_new[0] = 0xc2
 
     # change the settings
     sock_send.sendto(bytes_new, e32_control)
     (bytes, address) = sock_send.recvfrom(6)
-    time.sleep()
+    time.sleep(1)
+
+
+def get_settings()-> bytes:
+    """get settings value from the control socket"""
+    sock_send.sendto(b's', e32_control)
+    (bytes, address) = sock_send.recvfrom(6)
+    return bytes
 
 
 def send(bytearray):
@@ -99,34 +114,47 @@ def send_hello():
     counter = 1
     while True:
         
-        if (counter % 10) == 0:
-            # change to rendez-vous channel
+        # change to rendez-vous channel
+        if (counter % 3) == 0:
+
             print("changing to rendez-vous channel")
 
+            # get current adr
+            current_adr = get_adr()
+            time.sleep(1)
+
             # change air data rate to 300bps
+            change_adr(0x18)
 
             # stay on rendez-vous for 2 mins to gather information if node wants to join
             for i in range(1,4):
 
                 # send hello: [255, source, current air data rate]
                 message = [255, 255, current_adr]
-
+                send(bytearray(message))
                 time.sleep(25)
-
-        else:
             
-            # [255, source, counter, beginning_of_hash]
-            hash = dict_hash()[:1]
+            # go back to current air data rate and inform controller about joining nodes
+            change_adr(current_adr)
 
-            message = [255, myAddress, counter]
-            barr = bytearray(message)
-            
-            barr.extend(hash)
+            # TODO inform controller
 
-            print("sending hello", barr)
-            send(barr)
-            counter += 1        
-            time.sleep(30)
+            time.sleep(1)
+
+        # normal Hello messages
+        # [255, source, counter, beginning_of_hash]
+        hash = dict_hash()[:1]
+
+        message = [255, myAddress, counter]
+        barr = bytearray(message)
+        
+        barr.extend(hash)
+
+        print("sending hello", barr)
+        send(barr)
+        counter += 1        
+        time.sleep(30)
+
 
 def send_hello_once():
     """
@@ -370,10 +398,19 @@ listen.start()
 time.sleep(10)
 
 
-for i in range(3):
-    print("LSDB:", lsdb)
-    time.sleep(60)
+# print("settings: ", get_settings())
+# time.sleep(5)
+# print("change adr:", change_adr(0x06))
+# time.sleep(10)
+# print("settings: ", get_settings())
 
+
+
+# for i in range(3):
+#     print("LSDB:", lsdb)
+#     time.sleep(60)
+
+time.sleep(180)
 
 # cleanup
 sock_listen.close()
