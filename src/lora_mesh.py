@@ -3,6 +3,7 @@
 import socket
 import sys
 import os, os.path
+from pathlib import Path
 import time
 import threading
 from routing import myAddress as myAddress
@@ -16,10 +17,11 @@ e32_sock = "/run/e32.data"
 e32_control = "/run/e32.control"
 
 # fix socket permissions
+os.system("sudo systemctl stop e32")
 os.system("sudo systemctl daemon-reload")
 os.system("sudo systemctl start e32")
-os.system("sudo chown -R pi " + e32_sock)
-os.system("sudo chmod -R u=rwx " + e32_sock)
+# os.system("sudo chown -R pi " + e32_sock)
+# os.system("sudo chmod -R u=rwx " + e32_sock)
 
 
 serial_number = 10
@@ -38,6 +40,8 @@ lsdb = {}
 current_adr = 0x1a # default (2.4kbps)
 
 joining_nodes = []
+
+stop_event = threading.Event()
 
 
 def register_socket(s):
@@ -59,6 +63,22 @@ def register_socket(s):
     
     return csock
 
+def close_sock():
+    """ close the socket and delete the file """
+    global client_sock
+    global sock_send
+    global sock_listen
+    global e32_control
+
+    print("closing client socket", client_sock)
+
+    sock_listen.close()
+    sock_send.close()
+
+    if os.path.exists(client_sock):
+        os.remove(client_sock)
+    if os.path.exists(client_sock+"1"):
+        os.remove(client_sock+"1")
 
 def set_adr(adr):
     """sets current_adr to adr"""
@@ -69,10 +89,20 @@ def get_adr() -> bytes:
     """get current air data rate setting"""
     sock_send.sendto(b's', e32_control)
     (bytes, address) = sock_send.recvfrom(6)
-    return bytes[3]
+    print("get_adr received:", bytes)
+    try:
+        r = bytes[3]
+    except:
+        r = 26
+    return r
 
 def change_adr(adr):
     """ get the settings, change air data rate"""
+    
+    global sock_send
+    global sock_listen
+
+    time.sleep(2)
 
     sock_send.sendto(b's', e32_control)
     (bytes, address) = sock_send.recvfrom(6)
@@ -81,12 +111,33 @@ def change_adr(adr):
 
     # change the air_data_rate
     bytes_new[3] = adr
-    bytes_new[0] = 0xc2
+    # bytes_new[0] = 0xc2
 
     # change the settings
     sock_send.sendto(bytes_new, e32_control)
     (bytes, address) = sock_send.recvfrom(6)
     time.sleep(1)
+    
+
+    # close_sock()
+    time.sleep(2)
+    os.system("sudo systemctl stop e32")
+    os.system("sudo systemctl daemon-reload")
+    os.system("sudo systemctl start e32")
+    # os.system("sudo chown -R pi " + e32_sock)
+    # os.system("sudo chmod -R u=rwx " + e32_sock)
+
+    # sock_listen = register_socket(client_sock)
+    # sock_send = register_socket(client_sock+"1")
+    
+    time.sleep(20)
+
+    sock_send.sendto(b's', e32_control)
+    (settings, address) = sock_send.recvfrom(6)
+    print("settings are updated: ", settings)
+
+    time.sleep(5)
+
 
 
 def get_settings()-> bytes:
@@ -119,25 +170,37 @@ def send_hello():
 
             print("changing to rendez-vous channel")
 
+            global stop_event
+            stop_event.is_set()
+
             # get current adr
             current_adr = get_adr()
-            time.sleep(1)
+            print("current ADR: ", current_adr)
+            time.sleep(5)
 
             # change air data rate to 300bps
             change_adr(0x18)
+
+            stop_event.clear()
+
+            # time.sleep(5)
 
             # stay on rendez-vous for 2 mins to gather information if node wants to join
             for i in range(1,4):
 
                 # send hello: [255, source, current air data rate]
                 message = [255, 255, current_adr]
+                print("rendez-vous hello:", bytearray(message))
                 send(bytearray(message))
                 time.sleep(25)
             
             # go back to current air data rate and inform controller about joining nodes
-            change_adr(current_adr)
 
-            # TODO inform controller
+            stop_event.is_set()
+            change_adr(current_adr)
+            stop_event.clear()
+
+        #     # TODO inform controller
 
             time.sleep(1)
 
@@ -152,7 +215,7 @@ def send_hello():
 
         print("sending hello", barr)
         send(barr)
-        counter += 1        
+        counter += 1
         time.sleep(30)
 
 
@@ -268,7 +331,7 @@ def send_controller():
 
 def listen():
 
-    while True:
+    while True: #not stop_event.is_set():
         # receive from the e32
         (msg, address) = sock_listen.recvfrom(59)
         print("received", len(msg), msg)
@@ -392,17 +455,10 @@ send_hello.start()
 time.sleep(3)
 
 print("starting listen")
-listen.start()
+#listen.start()
 
 
-time.sleep(10)
-
-
-# print("settings: ", get_settings())
-# time.sleep(5)
-# print("change adr:", change_adr(0x06))
-# time.sleep(10)
-# print("settings: ", get_settings())
+time.sleep(300)
 
 
 
@@ -410,7 +466,7 @@ time.sleep(10)
 #     print("LSDB:", lsdb)
 #     time.sleep(60)
 
-time.sleep(180)
+# time.sleep(180)
 
 # cleanup
 sock_listen.close()
