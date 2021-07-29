@@ -111,26 +111,27 @@ def change_adr(adr):
 
     # change the air_data_rate
     bytes_new[3] = adr
-    # bytes_new[0] = 0xc2
+    #bytes_new[0] = 0xc2
 
     # change the settings
     sock_send.sendto(bytes_new, e32_control)
-    (bytes, address) = sock_send.recvfrom(6)
-    time.sleep(1)
+    (res, address) = sock_send.recvfrom(6)
+    time.sleep(10)
+    print("change setting response: ", res)
     
 
     # close_sock()
-    time.sleep(2)
-    os.system("sudo systemctl stop e32")
-    os.system("sudo systemctl daemon-reload")
-    os.system("sudo systemctl start e32")
+    # time.sleep(2)
+    # os.system("sudo systemctl stop e32")
+    # os.system("sudo systemctl daemon-reload")
+    # os.system("sudo systemctl start e32")
     # os.system("sudo chown -R pi " + e32_sock)
     # os.system("sudo chmod -R u=rwx " + e32_sock)
 
     # sock_listen = register_socket(client_sock)
     # sock_send = register_socket(client_sock+"1")
     
-    time.sleep(20)
+    # time.sleep(3)
 
     sock_send.sendto(b's', e32_control)
     (settings, address) = sock_send.recvfrom(6)
@@ -331,7 +332,7 @@ def send_controller():
 
 def listen():
 
-    while True: #not stop_event.is_set():
+    while not stop_event.is_set():
         # receive from the e32
         (msg, address) = sock_listen.recvfrom(59)
         print("received", len(msg), msg)
