@@ -17,14 +17,12 @@ e32_sock = "/run/e32.data"
 e32_control = "/run/e32.control"
 ctl_client = "/home/pi/ctl"
 
-# fix socket permissions
+# run e32 as service in the background
 os.system("sudo systemctl stop e32")
 os.system("sudo systemctl daemon-reload")
 os.system("sudo systemctl start e32")
-# os.system("sudo chown -R pi " + e32_sock)
-# os.system("sudo chmod -R u=rwx " + e32_sock)
 
-
+# globals
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 hello_counter = [-1, 0, 0, 0]
@@ -121,28 +119,15 @@ def change_adr(adr):
 
     # change the air_data_rate
     bytes_new[3] = adr
-    # bytes_new[0] = 0xc2
+    # bytes_new[0] = 0xc2 # C0: save on powerdown
 
     # change the settings
     ctl_sock.sendto(bytes_new, e32_control)
     (res, address) = ctl_sock.recvfrom(6)
     time.sleep(10)
     print("change setting response: ", res)
-    
 
-    # close_sock()
-    # time.sleep(2)
-    # os.system("sudo systemctl stop e32")
-    # os.system("sudo systemctl daemon-reload")
-    # os.system("sudo systemctl start e32")
-    # os.system("sudo chown -R pi " + e32_sock)
-    # os.system("sudo chmod -R u=rwx " + e32_sock)
-
-    # sock_listen = register_socket(client_sock)
-    # sock_send = register_socket(client_sock+"1")
-    
-    # time.sleep(3)
-
+    # check new settings
     ctl_sock.sendto(b's', e32_control)
     (settings, address) = ctl_sock.recvfrom(6)
     print("settings are updated: ", settings)
@@ -431,7 +416,7 @@ def listen():
                     # save channel and let channel advertiser know, that I want to join
                     set_adr(message[2])
                     time.sleep(2)
-                    # send_ack()
+                    send_ack()
                     time.sleep(2)
 
                     # join mesh
