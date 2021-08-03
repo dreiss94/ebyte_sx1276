@@ -263,13 +263,21 @@ def increase_serialnumber():
     global serial_number
     serial_number += 1
 
+def send_LSAs():
+    """sends all LSDB entries in LSA structure: [254, Source/Key, version, neighbour1, neighbour2, ...]"""
+    
+    for key, value in lsdb.items():
+
+        message = [254, key, value[0]]
+        message.extend(value[1:])
+        print("sending", message)
+        send(bytearray(message))
+        time.sleep(3)
+
 def request_LSA(target):
     """"Requests LSA at node that has different hash"""
 
     # send hello first (timeout = 30s) to make sure other node has entry
-    time.sleep(5)
-
-    send_hello_once()
 
     time.sleep(5)
 
@@ -383,13 +391,7 @@ def listen():
             time.sleep(1)
             print("answering LSA Request")
 
-            for key, value in lsdb.items():
-
-                message = [254, key, value[0]]
-                message.extend(value[1:])
-                print("sending", message)
-                send(bytearray(message))
-                time.sleep(3)
+            send_LSAs()
 
 
         elif identifier == 254:
@@ -450,6 +452,8 @@ def listen():
                 elif len(message) > 3:
                     print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
                     if int.from_bytes(dict_hash()[:1], "big") != message[3]:
+                        send_LSAs()
+                        time.sleep(5)
                         request_LSA(source)
                     
                     # # gather packets lost stats
@@ -476,13 +480,16 @@ listen = threading.Thread(target=listen, daemon = True)
 
 threadLock = threading.Lock()
 
-print("starting send_hello")
-send_hello.start()
+print("starting listen")
+listen.start()
 
 time.sleep(3)
 
-print("starting listen")
-listen.start()
+
+print("starting send_hello")
+send_hello.start()
+
+
 
 
 time.sleep(180)
