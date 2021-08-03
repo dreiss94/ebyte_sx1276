@@ -9,6 +9,7 @@ import threading
 from routing import myAddress as myAddress
 from dijkstra import dijkstra
 from typing import Dict, Any
+from collections import Counter
 import hashlib
 import json
 
@@ -25,6 +26,7 @@ os.system("sudo systemctl start e32")
 # globals
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
+new_hello = []
 hello_counter = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
 
@@ -425,30 +427,39 @@ def listen():
                     join_mesh(current_adr)
 
             else:
+                # standard hello message [255, source, counter, hash]
                 global neighbours
-                if source not in neighbours:  
-                    increase_serialnumber()
-                    neighbours.append(source)
-                    print("neighbours updated:", neighbours)
-                    # update own LSDB enty
-                    update_own_lsdb_entry()
-                    # lsdb_set_entry(myAddress, serial_number, neighbours)
-                    # lsdb_set_entry(source, serial_number, neighbours)
+                global new_hello
+                if source not in neighbours:
+                    new_hello.append(source)
+                    c = Counter(new_hello)
+                    print(c)
+
+                    # add node to neighbours after 3 hellos are received.
+                    if c[source] >= 3:
+                        while source in new_hello: new_hello.remove(source)
+                        print(new_hello)
+
+                        increase_serialnumber()
+                        neighbours.append(source)
+                        print("neighbours updated:", neighbours)
+                        # update own LSDB enty
+                        update_own_lsdb_entry()
                 
                 
-                if len(message) > 3:
+                elif len(message) > 3:
                     print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
                     if int.from_bytes(dict_hash()[:1], "big") != message[3]:
                         request_LSA(source)
                     
-                    # gather packets lost stats
-                    index = neighbours.index(source)
-                    # update hello_counter
-                    global hello_counter
-                    hello_counter[index] += 1
-                    # update hello_received
-                    global hello_percentage
-                    hello_percentage[index] = 100 * hello_counter[index] / message[2]
+                    # # gather packets lost stats
+                    # index = neighbours.index(source)
+                    # # update hello_counter
+                    # global hello_counter
+                    # hello_counter[index] += 1
+                    # # update hello_received
+                    # global hello_percentage
+                    # hello_percentage[index] = 100 * hello_counter[index] / message[2]
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
