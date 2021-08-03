@@ -27,7 +27,9 @@ os.system("sudo systemctl start e32")
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 new_hello = []
-hello_counter = [-1, 0, 0, 0]
+hello_sent = [-1, 0, 0, 0]
+hello_offset = [-1, 0, 0, 0]
+hello_received = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
 
 controller = -1
@@ -432,6 +434,9 @@ def listen():
                 # standard hello message [255, source, counter, hash]
                 global neighbours
                 global new_hello
+                global hello_received
+                global hello_sent
+                global hello_offset
                 if source not in neighbours:
                     new_hello.append(source)
                     c = Counter(new_hello)
@@ -447,6 +452,8 @@ def listen():
                         print("neighbours updated:", neighbours)
                         # update own LSDB enty
                         update_own_lsdb_entry()
+                        # reset counter for statistics
+                        hello_offset[neighbours.index(source)] = message[2]
                 
                 
                 elif len(message) > 3:
@@ -456,14 +463,16 @@ def listen():
                         time.sleep(5)
                         request_LSA(source)
                     
-                    # # gather packets lost stats
-                    # index = neighbours.index(source)
-                    # # update hello_counter
-                    # global hello_counter
-                    # hello_counter[index] += 1
-                    # # update hello_received
-                    # global hello_percentage
-                    # hello_percentage[index] = 100 * hello_counter[index] / message[2]
+                    # gather packets lost stats
+                    index = neighbours.index(source)
+                    # update hello_counter
+                    hello_received[index] += 1
+                    # update hello_percentage
+                    global hello_percentage
+                    hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
+                    print(f"hello counter {hello_received}")
+                    print(f"hello offset {hello_offset}")
+                    print(f"hello percentage {hello_percentage}")
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
