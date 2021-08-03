@@ -44,6 +44,7 @@ stop_event = threading.Event()
 
 
 def register_socket(s):
+    """registers clients for e32.data socket"""
 
     if os.path.exists(s):
         os.remove(s)
@@ -63,6 +64,7 @@ def register_socket(s):
     return csock
 
 def open_ctl_socket():
+    """opens a client for e32.control socket"""
 
     if os.path.exists(ctl_client):
         os.remove(ctl_client)
@@ -106,20 +108,18 @@ def get_adr() -> bytes:
     return r
 
 def change_adr(adr):
-    """ get the settings, change air data rate"""
-    
-    global sock_send
-    global sock_listen
+    """ get the settings, adjusts air data rate and changes it for the e32"""
 
     time.sleep(2)
-
+    
+    # get the raw settings
     bytes = get_settings()
 
     bytes_new = bytearray(bytes)  # make it mutable
 
     # change the air_data_rate
     bytes_new[3] = adr
-    # bytes_new[0] = 0xc2 # C0: save on powerdown
+    # bytes_new[0] = 0xc2 # C0: save on powerdown. C2 is bugged at the moment, it receives err 07.
 
     # change the settings
     ctl_sock.sendto(bytes_new, e32_control)
@@ -244,6 +244,8 @@ def send_ack():
     send(barr)
 
 def join_mesh(adr):
+    """changes the current channel and then starts sending hello messages"""
+    
     stop_event.is_set()
 
     change_adr(adr)
