@@ -15,6 +15,7 @@ import json
 client_sock = "/home/pi/client"
 e32_sock = "/run/e32.data"
 e32_control = "/run/e32.control"
+ctl_client = "/home/pi/ctl"
 
 # fix socket permissions
 os.system("sudo systemctl stop e32")
@@ -63,6 +64,16 @@ def register_socket(s):
     
     return csock
 
+def open_ctl_socket():
+
+    if os.path.exists(ctl_client):
+        os.remove(ctl_client)
+    
+    client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    client_socket.bind(ctl_client)
+
+    return client_socket
+
 def close_sock():
     """ close the socket and delete the file """
     global client_sock
@@ -87,8 +98,8 @@ def set_adr(adr):
 
 def get_adr() -> bytes:
     """get current air data rate setting"""
-    sock_send.sendto(b's', e32_control)
-    (bytes, address) = sock_send.recvfrom(6)
+    ctl_sock.sendto(b's', e32_control)
+    (bytes, address) = ctl_sock.recvfrom(6)
     print("get_adr received:", bytes)
     try:
         r = bytes[3]
@@ -104,18 +115,17 @@ def change_adr(adr):
 
     time.sleep(2)
 
-    sock_send.sendto(b's', e32_control)
-    (bytes, address) = sock_send.recvfrom(6)
+    bytes = get_settings()
 
     bytes_new = bytearray(bytes)  # make it mutable
 
     # change the air_data_rate
     bytes_new[3] = adr
-    #bytes_new[0] = 0xc2
+    # bytes_new[0] = 0xc2
 
     # change the settings
-    sock_send.sendto(bytes_new, e32_control)
-    (res, address) = sock_send.recvfrom(6)
+    ctl_sock.sendto(bytes_new, e32_control)
+    (res, address) = ctl_sock.recvfrom(6)
     time.sleep(10)
     print("change setting response: ", res)
     
@@ -133,8 +143,8 @@ def change_adr(adr):
     
     # time.sleep(3)
 
-    sock_send.sendto(b's', e32_control)
-    (settings, address) = sock_send.recvfrom(6)
+    ctl_sock.sendto(b's', e32_control)
+    (settings, address) = ctl_sock.recvfrom(6)
     print("settings are updated: ", settings)
 
     time.sleep(5)
@@ -143,8 +153,9 @@ def change_adr(adr):
 
 def get_settings()-> bytes:
     """get settings value from the control socket"""
-    sock_send.sendto(b's', e32_control)
-    (bytes, address) = sock_send.recvfrom(6)
+    ctl_sock.sendto(b's', e32_control)
+    (bytes, address) = ctl_sock.recvfrom(6)
+    print("get_settings received:", bytes)
     return bytes
 
 
@@ -427,14 +438,14 @@ def listen():
                     if int.from_bytes(dict_hash()[:1], "big") != message[3]:
                         request_LSA(source)
                     
-                # gather packets lost stats
-                index = neighbours.index(source)
-                # update hello_counter
-                global hello_counter
-                hello_counter[index] += 1
-                # update hello_received
-                global hello_percentage
-                hello_percentage[index] = 100 * hello_counter[index] / message[2]
+                    # gather packets lost stats
+                    index = neighbours.index(source)
+                    # update hello_counter
+                    global hello_counter
+                    hello_counter[index] += 1
+                    # update hello_received
+                    global hello_percentage
+                    hello_percentage[index] = 100 * hello_counter[index] / message[2]
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
@@ -442,6 +453,7 @@ def listen():
 
 sock_listen = register_socket(client_sock)
 sock_send = register_socket(client_sock+"1")
+ctl_sock = open_ctl_socket()
 
 send_hello = threading.Thread(target=send_hello, daemon = True)
 listen = threading.Thread(target=listen, daemon = True)
@@ -456,10 +468,10 @@ send_hello.start()
 time.sleep(3)
 
 print("starting listen")
-#listen.start()
+listen.start()
 
 
-time.sleep(300)
+time.sleep(180)
 
 
 
