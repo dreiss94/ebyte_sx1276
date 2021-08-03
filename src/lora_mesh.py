@@ -178,7 +178,7 @@ def send_hello():
     while True:
         
         # change to rendez-vous channel
-        if (counter % 3) == 0:
+        if (counter % 10) == 0:
 
             print("changing to rendez-vous channel")
 
@@ -257,6 +257,17 @@ def send_ack():
 
     print("sending ack", barr)
     send(barr)
+
+def join_mesh(adr):
+    stop_event.is_set()
+
+    change_adr(adr)
+    
+    stop_event.clear()
+
+    # start sending hellos
+    global send_hello
+    send_hello.start()
 
 def increase_serialnumber():
     """Increments version of neighbour-list by 1"""
@@ -419,7 +430,12 @@ def listen():
                     
                     # save channel and let channel advertiser know, that I want to join
                     set_adr(message[2])
-                    send_ack()
+                    time.sleep(2)
+                    # send_ack()
+                    time.sleep(2)
+
+                    # join mesh
+                    join_mesh(current_adr)
 
             else:
                 global neighbours
