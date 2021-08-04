@@ -10,6 +10,7 @@ from routing import myAddress
 
 
 def get_adjacency_matrix(lsdb):
+	"""converts LSDB to adjacency matrix"""
 	
 	# LSDB = {
 	# 	0 : [version, 1],
@@ -29,6 +30,10 @@ def get_adjacency_matrix(lsdb):
 	return M
 
 def dijkstra(lsdb):
+	"""calculates shortest path in Dijkstra manner
+	output:
+	routing_table = {
+		destination : next_hop}"""
 
 	G = get_adjacency_matrix(lsdb)
 	
@@ -37,7 +42,7 @@ def dijkstra(lsdb):
 	# set source to myAdress and destination = every other node
 	source = myAddress
 	destinations = list(lsdb.keys())
-	destinations.remove("version")
+	# destinations.remove("version")
 	destinations.remove(myAddress)
 
 	for destination in destinations:
@@ -113,3 +118,15 @@ def dijkstra(lsdb):
 		# print("distance from source:", d) # Display the distance of each node from source
 
 	return destination_nexthop
+
+# d = {0: [10, 1], 1: [10, 0, 1], 2: [10, 1]}
+# d = {0: [10, 2], 2: [10, 0]}
+d = {0: [10, 1], 1: [10, 0]}
+print(d)
+
+rt = dijkstra(d)
+
+for key in rt.keys():
+            print("For Destination ", key, "the Next Hop is ", rt[key])
+
+

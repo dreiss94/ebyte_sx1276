@@ -485,6 +485,7 @@ def listen():
                         request_LSA(source)
                         if not update_routing_table.is_alive():
                             update_routing_table.start()
+                            start_dijkstra.set()
                         else:
                             time.sleep(60)
                             start_dijkstra.set()
