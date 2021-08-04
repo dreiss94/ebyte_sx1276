@@ -32,7 +32,8 @@ hello_offset = [-1, 0, 0, 0]
 hello_received = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
 
-controller = -1
+controller = 2
+is_controller = True
 
 routingTable = {}
 
@@ -44,6 +45,7 @@ current_adr = 0x1a # default (2.4kbps)
 
 joining_nodes = []
 
+start_dijkstra = threading.Event()
 stop_event = threading.Event()
 
 
@@ -325,6 +327,27 @@ def dict_hash() -> bytes:
     dhash.update(encoded)
     return dhash.digest()
 
+def update_rt():
+    """runs Dijkstra to update the Routing Table"""
+
+    time.sleep(60)
+
+    global start_dijkstra
+
+    while start_dijkstra.is_set():
+        global routingTable
+        threadLock.acquire()
+        rt = dijkstra(lsdb)
+        routingTable = rt
+        threadLock.release()
+
+        start_dijkstra.clear()
+
+        for key in routingTable.keys():
+            print("For Destination ", key, "the Next Hop is ", routingTable[key])
+        
+        time.sleep(180)
+
 def elect_controller() -> int:
     """
     elects controller with highest ID in LSDB
@@ -336,16 +359,16 @@ def elect_controller() -> int:
         controller = -1
     return controller
 
-def send_controller():
+def sendto_controller():
     """
     send packets received ratios to controller in multi-hop manner
     """
 
     next_hop = routingTable[controller]
     for i in range(1, len(neighbours)):
-        # [next-hop,source, destination, payload]
+        # [next-hop, source, destination, payload]
         msg = [next_hop, myAddress, controller, neighbours[i], hello_percentage[i]]
-        barr = bytearray(msg)    
+        barr = bytearray(msg)
         print("Sending stats to controller", msg)
         send(barr)
         time.sleep(3)
@@ -363,8 +386,6 @@ def listen():
             identifier = message[0]
             source = message[1]
             
-            # source = message[0]
-            # identifier = message[2]
         except:
             pass
         
@@ -374,7 +395,7 @@ def listen():
                 destination = message[2]
 
                 if destination == myAddress:
-                    print("Message ", msg, " arrived at destination ", myAddress)
+                    print(f"Message {msg} arrived at destination {myAddress} with payload: {message[3:]}")
                 else:
                     fwd_message = [routingTable[destination], source, destination]
                     barr = bytearray(fwd_message)
@@ -462,7 +483,12 @@ def listen():
                         send_LSAs()
                         time.sleep(5)
                         request_LSA(source)
-                    
+                        if not update_routing_table.is_alive():
+                            update_routing_table.start()
+                        else:
+                            time.sleep(60)
+                            start_dijkstra.set()
+                        
                     # gather packets lost stats
                     index = neighbours.index(source)
                     # update hello_counter
@@ -470,9 +496,6 @@ def listen():
                     # update hello_percentage
                     global hello_percentage
                     hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
-                    print(f"hello counter {hello_received}")
-                    print(f"hello offset {hello_offset}")
-                    print(f"hello percentage {hello_percentage}")
 
         else:
             print("Message ", msg, " discarded because Im not next hop")
@@ -484,7 +507,7 @@ ctl_sock = open_ctl_socket()
 
 send_hello = threading.Thread(target=send_hello, daemon = True)
 listen = threading.Thread(target=listen, daemon = True)
-# build_lsa = threading.Thread(target=construct_lsdb)
+update_routing_table = threading.Thread(target=update_rt, daemon= True)
 
 
 threadLock = threading.Lock()
@@ -499,9 +522,7 @@ print("starting send_hello")
 send_hello.start()
 
 
-
-
-time.sleep(180)
+time.sleep(500)
 
 
 
@@ -527,13 +548,7 @@ os.system("sudo systemctl stop e32")
 sys.exit()
 
 
-# threadLock.acquire()
-# rt = dijkstra(lsdb)
-# routingTable = rt
-# threadLock.release()
 
-# for key in routingTable.keys():
-#     print("For Destination ", key, "the Next Hop is ", routingTable[key])
 
 
 
