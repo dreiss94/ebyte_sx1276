@@ -121,12 +121,15 @@ def dijkstra(lsdb):
 
 # d = {0: [10, 1], 1: [10, 0, 1], 2: [10, 1]}
 # d = {0: [10, 2], 2: [10, 0]}
-d = {0: [10, 1], 1: [10, 0]}
-print(d)
+# d = {0: [10, 1], 1: [10, 0]}
+# print(d)
 
-rt = dijkstra(d)
+# m = get_adjacency_matrix(d)
+# print(m)
 
-for key in rt.keys():
-            print("For Destination ", key, "the Next Hop is ", rt[key])
+# rt = dijkstra(d)
+
+# for key in rt.keys():
+#             print("For Destination ", key, "the Next Hop is ", rt[key])
 
 
