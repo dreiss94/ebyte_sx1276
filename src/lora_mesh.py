@@ -170,7 +170,7 @@ def send_rendez_vous_hello():
 def advertise_default_channel():
     # send hello: [255, source, default_channel]
     message = [255, 255, default_channel]
-    print("advertising default channel, because this node is controller:", bytearray(message))
+    print("advertising default channel:", bytearray(message))
     send(bytearray(message))
 
 def send_hello():
@@ -419,7 +419,7 @@ def go_to_rendez_vous():
 
 def newTimer():
     global t
-    t = threading.Timer(50.0, go_to_rendez_vous)
+    t = threading.Timer(300.0, go_to_rendez_vous)
 
 def new_hello_thread():
     global send_hello_msg
