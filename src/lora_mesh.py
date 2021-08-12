@@ -32,7 +32,7 @@ hello_offset = [-1, 0, 0, 0]
 hello_received = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
 
-controller = 2
+controller = 1
 is_controller = True
 
 routingTable = {}
@@ -42,11 +42,14 @@ hash_difference = False
 lsdb = {}
 
 current_adr = 0x1a # default (2.4kbps)
+default_channel = 0x1a # default (2.4kbps)
 
 joining_nodes = []
 
 start_dijkstra = threading.Event()
-stop_event = threading.Event()
+stop_listen = threading.Event()
+stop_hello = threading.Event()
+go_rendez_vous = threading.Event()
 
 
 def register_socket(s):
@@ -157,7 +160,19 @@ def send(bytearray):
     (bytes, address) = sock_send.recvfrom(10)
     print("return code", bytes[0])
     threadLock.release()
-    
+
+def send_rendez_vous_hello():
+    # send hello: [255, source, current air data rate]
+    message = [255, 255, current_adr]
+    print("rendez-vous hello:", bytearray(message))
+    send(bytearray(message))
+
+def advertise_default_channel():
+    # send hello: [255, source, default_channel]
+    message = [255, 255, default_channel]
+    print("advertising default channel, because this node is controller:", bytearray(message))
+    send(bytearray(message))
+
 def send_hello():
     """
     send Hello message
@@ -166,15 +181,15 @@ def send_hello():
     every 10th message is on rendez-vous channel at 0.3kbps 
     """
     counter = 1
-    while True:
+    while not stop_hello.is_set():
         
         # change to rendez-vous channel
         if (counter % 10) == 0:
 
             print("changing to rendez-vous channel")
 
-            global stop_event
-            stop_event.is_set()
+            global stop_listen
+            stop_listen.set()
 
             # get current adr
             current_adr = get_adr()
@@ -184,24 +199,21 @@ def send_hello():
             # change air data rate to 300bps
             change_adr(0x18)
 
-            stop_event.clear()
+            stop_listen.clear()
 
             # time.sleep(5)
 
             # stay on rendez-vous for 2 mins to gather information if node wants to join
             for i in range(1,4):
 
-                # send hello: [255, source, current air data rate]
-                message = [255, 255, current_adr]
-                print("rendez-vous hello:", bytearray(message))
-                send(bytearray(message))
+                send_rendez_vous_hello()
                 time.sleep(25)
             
             # go back to current air data rate and inform controller about joining nodes
 
-            stop_event.is_set()
+            stop_listen.is_set()
             change_adr(current_adr)
-            stop_event.clear()
+            stop_listen.clear()
 
         #     # TODO inform controller
 
@@ -252,15 +264,20 @@ def send_ack():
 def join_mesh(adr):
     """changes the current channel and then starts sending hello messages"""
     
-    stop_event.is_set()
+    global stop_listen
+
+    stop_listen.set()
 
     change_adr(adr)
     
-    stop_event.clear()
+    stop_listen.clear()
 
-    # start sending hellos
-    global send_hello
-    send_hello.start()
+    # start sending hellos and reset 5 min timer
+    print("restarting timer and hello messages")
+    new_hello_thread()
+    send_hello_msg.start()
+    newTimer()
+    t.start()
 
 def increase_serialnumber():
     """Increments version of neighbour-list by 1"""
@@ -373,10 +390,43 @@ def sendto_controller():
         send(barr)
         time.sleep(3)
 
+def go_to_rendez_vous():
+    """switches to rendez-vous channel when no hello messages are received for 5 minutes"""
+    print("No messages received in 5 minutes: changing to rendez-vous channel")
+
+    global stop_listen
+    global stop_hello
+
+    stop_listen.set()
+    stop_hello.set()
+    set_adr(0x18)
+    # change air data rate to 300bps
+    change_adr(0x18)
+
+    stop_listen.clear()
+    # stop_hello.clear()
+
+    time.sleep(2)
+    
+    # advertise default channel if this node is controller
+    if controller == myAddress:
+        for i in range(1,4):
+            advertise_default_channel()
+            time.sleep(30)
+        join_mesh(default_channel)
+
+
+def newTimer():
+    global t
+    t = threading.Timer(50.0, go_to_rendez_vous)
+
+def new_hello_thread():
+    global send_hello_msg
+    send_hello_msg = threading.Thread(target=send_hello, daemon = True)
 
 def listen():
 
-    while not stop_event.is_set():
+    while not stop_listen.is_set():
         # receive from the e32
         (msg, address) = sock_listen.recvfrom(59)
         print("received", len(msg), msg)
@@ -438,9 +488,12 @@ def listen():
                     joining_nodes.append(message[3])
 
                 
-                else:
+                elif message[2]  == 0x18:
+                    print("received hello on rendez vous, 0x18")
+                
+                elif message[2] == 0x19 or message[2] == 0x1a or message[2] == 0x1b or message[2] == 0x1c or message[2] == 0x1d:
                     # handle rendezvous hello [255, 255, current_adr]
-                    print("received hello on rendezvous")
+                    print("received hello on rendezvous, changing settings")
                     
                     # save channel and let channel advertiser know, that I want to join
                     set_adr(message[2])
@@ -458,6 +511,11 @@ def listen():
                 global hello_received
                 global hello_sent
                 global hello_offset
+                print("reset timer and start again")
+                t.cancel()
+                newTimer()
+                t.start()
+                print("timer started")
                 if source not in neighbours:
                     new_hello.append(source)
                     c = Counter(new_hello)
@@ -506,10 +564,12 @@ sock_listen = register_socket(client_sock)
 sock_send = register_socket(client_sock+"1")
 ctl_sock = open_ctl_socket()
 
-send_hello = threading.Thread(target=send_hello, daemon = True)
+new_hello_thread()
 listen = threading.Thread(target=listen, daemon = True)
 update_routing_table = threading.Thread(target=update_rt, daemon= True)
 
+#go_to_rendez_vous = threading.Thread(target=go_to_rendez_vous, daemon = True)
+newTimer()
 
 threadLock = threading.Lock()
 
@@ -520,7 +580,9 @@ time.sleep(3)
 
 
 print("starting send_hello")
-send_hello.start()
+send_hello_msg.start()
+
+t.start()
 
 
 time.sleep(500)
