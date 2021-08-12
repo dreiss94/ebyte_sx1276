@@ -263,7 +263,7 @@ def send_ack():
 
 def join_mesh(adr):
     """changes the current channel and then starts sending hello messages"""
-    
+
     global stop_listen
 
     stop_listen.set()
@@ -407,6 +407,7 @@ def go_to_rendez_vous():
     # stop_hello.clear()
 
     time.sleep(2)
+    stop_hello.clear()
     
     # advertise default channel if this node is controller
     if controller == myAddress:
