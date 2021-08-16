@@ -185,12 +185,14 @@ def send_hello():
     while not stop_hello.is_set():
         
         # change to rendez-vous channel
-        if (counter % 10) == 0:
+        if (counter % 10) == 0 and len(neighbours) > 1:
 
-            print("changing to rendez-vous channel")
+            print("changing to rendez-vous channel to advertise mesh channel")
 
             global stop_listen
             stop_listen.set()
+
+            t.cancel()
 
             # get current adr
             current_adr = get_adr()
@@ -215,6 +217,9 @@ def send_hello():
             stop_listen.is_set()
             change_adr(current_adr)
             stop_listen.clear()
+
+            newTimer()
+            t.start()
 
         #     # TODO inform controller
 
@@ -596,7 +601,7 @@ t.start()
 #     for thread in threading.enumerate(): 
 #         print(thread.name)
 
-time.sleep(500)
+time.sleep(600)
 
 
 
