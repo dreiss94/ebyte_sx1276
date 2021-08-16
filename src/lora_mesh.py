@@ -265,6 +265,7 @@ def join_mesh(adr):
     """changes the current channel and then starts sending hello messages"""
 
     global stop_listen
+    global stop_hello
 
     stop_listen.set()
 
@@ -273,6 +274,7 @@ def join_mesh(adr):
     stop_listen.clear()
 
     # start sending hellos and reset 5 min timer
+    stop_hello.clear()
     print("restarting timer and hello messages")
     new_hello_thread()
     send_hello_msg.start()
@@ -407,19 +409,19 @@ def go_to_rendez_vous():
     # stop_hello.clear()
 
     time.sleep(2)
-    stop_hello.clear()
     
     # advertise default channel if this node is controller
     if controller == myAddress:
         for i in range(1,4):
             advertise_default_channel()
             time.sleep(30)
+        print("Joining default channel")
         join_mesh(default_channel)
 
 
 def newTimer():
     global t
-    t = threading.Timer(300.0, go_to_rendez_vous)
+    t = threading.Timer(40, go_to_rendez_vous)
 
 def new_hello_thread():
     global send_hello_msg
@@ -585,6 +587,10 @@ send_hello_msg.start()
 
 t.start()
 
+# while True:
+#     time.sleep(15)
+#     for thread in threading.enumerate(): 
+#         print(thread.name)
 
 time.sleep(500)
 
