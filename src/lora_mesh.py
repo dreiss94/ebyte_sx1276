@@ -12,6 +12,7 @@ from typing import Dict, Any
 from collections import Counter
 import hashlib
 import json
+import random
 
 client_sock = "/home/pi/client"
 e32_sock = "/run/e32.data"
@@ -180,7 +181,7 @@ def send_hello():
     Timeout: 30s
     every 10th message is on rendez-vous channel at 0.3kbps 
     """
-    counter = 1
+    counter = random.randint(1,9)
     while not stop_hello.is_set():
         
         # change to rendez-vous channel
