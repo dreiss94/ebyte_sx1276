@@ -27,6 +27,7 @@ os.system("sudo systemctl start e32")
 # globals
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
+n_time = [-1]
 new_hello = []
 hello_sent = [-1, 0, 0, 0]
 hello_offset = [-1, 0, 0, 0]
@@ -218,7 +219,7 @@ def send_hello():
             change_adr(current_adr)
             stop_listen.clear()
 
-            newTimer()
+            new_Timer()
             t.start()
 
         #     # TODO inform controller
@@ -284,7 +285,7 @@ def join_mesh(adr):
     print("restarting timer and hello messages")
     new_hello_thread()
     send_hello_msg.start()
-    newTimer()
+    new_Timer()
     t.start()
 
 def increase_serialnumber():
@@ -420,11 +421,29 @@ def go_to_rendez_vous():
         join_mesh(default_channel)
 
 
-def newTimer():
+def new_Timer():
     """creates a new gobal timer with countdown 5 min,
     when countdown finishes, node goes to rendez-vous channel"""
     global t
     t = threading.Timer(300.0, go_to_rendez_vous)
+
+def check_neighbours():
+    threadLock.acquire()
+    global neighbours
+    global n_time
+    indices_to_delete = []
+    now = time.time()
+
+    # check if last registered hello is older than 5 mins
+    for t in n_time[1:]:
+        diff = now-t
+        if diff > 300:
+            indices_to_delete.append(n_time.index(t))
+    indices_to_delete.reverse()
+    for e in indices_to_delete:
+        del neighbours[e]
+        del n_time[e]
+    threadLock.release()
 
 def new_hello_thread():
     """creates new send_hello_msg thread"""
@@ -521,7 +540,7 @@ def listen():
                 global start_dijkstra
                 # print("reset timer and start again")
                 t.cancel()
-                newTimer()
+                new_Timer()
                 t.start()
                 # print("timer started")
                 if source not in neighbours:
@@ -536,6 +555,7 @@ def listen():
 
                         increase_serialnumber()
                         neighbours.append(source)
+                        n_time.append(time.time())
                         print("neighbours updated:", neighbours)
                         start_dijkstra = True
                         # update own LSDB enty
@@ -558,9 +578,13 @@ def listen():
                         #     start_dijkstra.set()
                     else:
                         update_rt()
+                    
+                    index = neighbours.index(source)
+
+                    # update time
+                    n_time[index] = time.time()
                         
                     # gather packets lost stats
-                    index = neighbours.index(source)
                     # update hello_counter
                     hello_received[index] += 1
                     # update hello_percentage
@@ -577,10 +601,12 @@ ctl_sock = open_ctl_socket()
 
 new_hello_thread()
 listen = threading.Thread(target=listen, daemon = True)
+neighbours_check = threading.Thread(target=check_neighbours, daemon = True)
 update_routing_table = threading.Thread(target=update_rt, daemon= True)
 
+
 #go_to_rendez_vous = threading.Thread(target=go_to_rendez_vous, daemon = True)
-newTimer()
+new_Timer()
 
 threadLock = threading.Lock()
 
