@@ -47,7 +47,7 @@ default_channel = 0x1a # default (2.4kbps)
 
 joining_nodes = []
 
-start_dijkstra = threading.Event()
+start_dijkstra = False
 stop_listen = threading.Event()
 stop_hello = threading.Event()
 go_rendez_vous = threading.Event()
@@ -355,23 +355,18 @@ def dict_hash() -> bytes:
 def update_rt():
     """runs Dijkstra to update the Routing Table"""
 
-    time.sleep(60)
+    if start_dijkstra:
 
-    global start_dijkstra
-
-    while start_dijkstra.is_set():
         global routingTable
+        global start_dijkstra
         threadLock.acquire()
         rt = dijkstra(lsdb)
         routingTable = rt
         threadLock.release()
 
-        start_dijkstra.clear()
-
         for key in routingTable.keys():
             print("For Destination ", key, "the Next Hop is ", routingTable[key])
-        
-        time.sleep(180)
+        start_dijkstra = False
 
 def elect_controller() -> int:
     """
@@ -523,6 +518,7 @@ def listen():
                 global hello_received
                 global hello_sent
                 global hello_offset
+                global start_dijkstra
                 # print("reset timer and start again")
                 t.cancel()
                 newTimer()
@@ -541,6 +537,7 @@ def listen():
                         increase_serialnumber()
                         neighbours.append(source)
                         print("neighbours updated:", neighbours)
+                        start_dijkstra = True
                         # update own LSDB enty
                         update_own_lsdb_entry()
                         # reset counter for statistics
@@ -553,12 +550,14 @@ def listen():
                         send_LSAs()
                         time.sleep(5)
                         request_LSA(source)
-                        if not update_routing_table.is_alive():
-                            update_routing_table.start()
-                            start_dijkstra.set()
-                        else:
-                            time.sleep(60)
-                            start_dijkstra.set()
+                        # if not update_routing_table.is_alive():
+                        #     update_routing_table.start()
+                        #     start_dijkstra.set()
+                        # else:
+                        #     time.sleep(60)
+                        #     start_dijkstra.set()
+                    else:
+                        update_rt()
                         
                     # gather packets lost stats
                     index = neighbours.index(source)
