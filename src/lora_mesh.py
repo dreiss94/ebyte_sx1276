@@ -420,10 +420,13 @@ def go_to_rendez_vous():
 
 
 def newTimer():
+    """creates a new gobal timer with countdown 5 min,
+    when countdown finishes, node goes to rendez-vous channel"""
     global t
-    t = threading.Timer(40, go_to_rendez_vous)
+    t = threading.Timer(300.0, go_to_rendez_vous)
 
 def new_hello_thread():
+    """creates new send_hello_msg thread"""
     global send_hello_msg
     send_hello_msg = threading.Thread(target=send_hello, daemon = True)
 
@@ -514,11 +517,11 @@ def listen():
                 global hello_received
                 global hello_sent
                 global hello_offset
-                print("reset timer and start again")
+                # print("reset timer and start again")
                 t.cancel()
                 newTimer()
                 t.start()
-                print("timer started")
+                # print("timer started")
                 if source not in neighbours:
                     new_hello.append(source)
                     c = Counter(new_hello)
