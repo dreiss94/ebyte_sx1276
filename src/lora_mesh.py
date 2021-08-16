@@ -185,7 +185,7 @@ def send_hello():
     while not stop_hello.is_set():
         
         # change to rendez-vous channel
-        if (counter % 10) == 0 and len(neighbours) > 1:
+        if (counter % 10) == 0 and not routingTable:
 
             print("changing to rendez-vous channel to advertise mesh channel")
 
