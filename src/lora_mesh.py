@@ -185,7 +185,7 @@ def send_hello():
     while not stop_hello.is_set():
         
         # change to rendez-vous channel
-        if (counter % 10) == 0 and not routingTable:
+        if (counter % 10) == 0 and bool(routingTable):
 
             print("changing to rendez-vous channel to advertise mesh channel")
 
@@ -612,6 +612,13 @@ time.sleep(600)
 # time.sleep(180)
 
 # cleanup
+
+stop_hello.set()
+stop_listen.set()
+
+time.sleep(5)
+
+
 sock_listen.close()
 sock_send.close()
 
