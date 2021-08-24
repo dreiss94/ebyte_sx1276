@@ -438,7 +438,7 @@ def check_neighbours():
             # check if last registered hello is older than 5 mins
             for t in n_time[1:]:
                 diff = now-t
-                if diff > 60:
+                if diff > 300:
                     indices_to_delete.append(n_time.index(t))
             indices_to_delete.reverse()
             for e in indices_to_delete:
@@ -447,7 +447,7 @@ def check_neighbours():
                 update_own_lsdb_entry()
                 del n_time[e]
             threadLock.release()
-        time.sleep(90)
+        time.sleep(55)
 
 def new_hello_thread(advertising: bool):
     """creates new send_hello_msg thread"""
