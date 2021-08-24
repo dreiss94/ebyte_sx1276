@@ -599,78 +599,65 @@ def listen():
             print("Message ", msg, " discarded because Im not next hop")
 
 
-sock_listen = register_socket(client_sock)
-sock_send = register_socket(client_sock+"1")
-ctl_sock = open_ctl_socket()
+if __name__ == "__main__":
 
-new_hello_thread(False)
-listen = threading.Thread(target=listen, daemon = True)
-neighbours_check = threading.Thread(target=check_neighbours, daemon = True)
-update_routing_table = threading.Thread(target=update_rt, daemon= True)
+    # register send/receive clients
+    # open control socket
+    sock_listen = register_socket(client_sock)
+    sock_send = register_socket(client_sock+"1")
+    ctl_sock = open_ctl_socket()
 
+    # create hello thread without advertising
+    new_hello_thread(False)
 
-new_Timer()
+    # create threads for listening, check if neighbours are alive, updating routing table
+    listen = threading.Thread(target=listen, daemon = True)
+    neighbours_check = threading.Thread(target=check_neighbours, daemon = True)
+    update_routing_table = threading.Thread(target=update_rt, daemon= True)
 
-threadLock = threading.Lock()
+    # create Timer to enable going to rv-channel after 5 mins of not receiving anything
+    new_Timer()
+    # start Timer
+    t.start()
 
-print("starting listen")
-listen.start()
+    threadLock = threading.Lock()
 
-time.sleep(3)
+    print("starting listen")
+    listen.start()
 
+    time.sleep(3)
 
-print("starting send_hello")
-send_hello_msg.start()
+    print("starting send_hello")
+    send_hello_msg.start()
 
-# start Timer to enable going to rv-channel after 5 mins of not receiving anything
-# t.start()
-
-neighbours_check.start()
-
-# while True:
-#     time.sleep(15)
-#     for thread in threading.enumerate(): 
-#         print(thread.name)
-
-time.sleep(600)
+    neighbours_check.start()
 
 
 
-# for i in range(3):
-#     print("LSDB:", lsdb)
-#     time.sleep(60)
-
-# time.sleep(180)
-
-# cleanup
-
-stop_hello.set()
-stop_listen.set()
-
-time.sleep(5)
-
-
-sock_listen.close()
-sock_send.close()
-
-if os.path.exists(client_sock):
-    os.remove(client_sock)
-
-if os.path.exists(client_sock+"1"):
-    os.remove(client_sock+"1")
-
-
-os.system("sudo systemctl stop e32")
-
-sys.exit()
+    time.sleep(600)
 
 
 
 
+    # cleanup
+
+    stop_hello.set()
+    stop_listen.set()
+
+    time.sleep(5)
 
 
+    sock_listen.close()
+    sock_send.close()
+
+    if os.path.exists(client_sock):
+        os.remove(client_sock)
+
+    if os.path.exists(client_sock+"1"):
+        os.remove(client_sock+"1")
 
 
+    os.system("sudo systemctl stop e32")
 
-
+    sys.exit()
 
