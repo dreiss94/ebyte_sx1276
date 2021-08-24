@@ -51,7 +51,7 @@ joining_nodes = []
 start_dijkstra = False
 stop_listen = threading.Event()
 stop_hello = threading.Event()
-go_rendez_vous = threading.Event()
+stop_checking = threading.Event()
 
 
 def register_socket(s):
@@ -145,15 +145,12 @@ def change_adr(adr):
 
     time.sleep(5)
 
-
-
 def get_settings()-> bytes:
     """get settings value from the control socket"""
     ctl_sock.sendto(b's', e32_control)
     (bytes, address) = ctl_sock.recvfrom(6)
     print("get_settings received:", bytes)
     return bytes
-
 
 def send(bytearray):
     """Sends a bytearray to the SEND socket"""
@@ -175,56 +172,58 @@ def advertise_default_channel():
     print("advertising default channel:", bytearray(message))
     send(bytearray(message))
 
-def send_hello():
+def send_hello(advertising: bool):
     """
     send Hello message
     Structure: [255, source, counter, beginning_of_hash]
     Timeout: 30s
-    every 10th message is on rendez-vous channel at 0.3kbps 
+    if advertising == TRUE
+        every 10th message is on rendez-vous channel at 0.3kbps 
     """
     counter = random.randint(1,9)
     while not stop_hello.is_set():
         
-        # change to rendez-vous channel
-        if (counter % 10) == 0 and bool(routingTable):
+        if advertising:
+            # change to rendez-vous channel
+            if (counter % 10) == 0 and bool(routingTable):
 
-            print("changing to rendez-vous channel to advertise mesh channel")
+                print("changing to rendez-vous channel to advertise mesh channel")
 
-            global stop_listen
-            stop_listen.set()
+                global stop_listen
+                stop_listen.set()
 
-            t.cancel()
+                t.cancel()
 
-            # get current adr
-            current_adr = get_adr()
-            print("current ADR: ", current_adr)
-            time.sleep(5)
+                # get current adr
+                current_adr = get_adr()
+                print("current ADR: ", current_adr)
+                time.sleep(5)
 
-            # change air data rate to 300bps
-            change_adr(0x18)
+                # change air data rate to 300bps
+                change_adr(0x18)
 
-            stop_listen.clear()
+                stop_listen.clear()
 
-            # time.sleep(5)
+                # time.sleep(5)
 
-            # stay on rendez-vous for 2 mins to gather information if node wants to join
-            for i in range(1,4):
+                # stay on rendez-vous for 2 mins to gather information if node wants to join
+                for i in range(1,4):
 
-                send_rendez_vous_hello()
-                time.sleep(25)
-            
-            # go back to current air data rate and inform controller about joining nodes
+                    send_rendez_vous_hello()
+                    time.sleep(25)
+                
+                # go back to current air data rate and inform controller about joining nodes
 
-            stop_listen.is_set()
-            change_adr(current_adr)
-            stop_listen.clear()
+                stop_listen.is_set()
+                change_adr(current_adr)
+                stop_listen.clear()
 
-            new_Timer()
-            t.start()
+                new_Timer()
+                t.start()
 
-        #     # TODO inform controller
+            #     # TODO inform controller
 
-            time.sleep(1)
+                time.sleep(1)
 
         # normal Hello messages
         # [255, source, counter, beginning_of_hash]
@@ -356,10 +355,10 @@ def dict_hash() -> bytes:
 def update_rt():
     """runs Dijkstra to update the Routing Table"""
 
+    global start_dijkstra
     if start_dijkstra:
 
         global routingTable
-        global start_dijkstra
         threadLock.acquire()
         rt = dijkstra(lsdb)
         routingTable = rt
@@ -428,27 +427,32 @@ def new_Timer():
     t = threading.Timer(300.0, go_to_rendez_vous)
 
 def check_neighbours():
-    threadLock.acquire()
-    global neighbours
-    global n_time
-    indices_to_delete = []
-    now = time.time()
+    while not stop_checking.is_set():
+        global neighbours
+        if bool(neighbours[1:]):
+            threadLock.acquire()
+            global n_time
+            indices_to_delete = []
+            now = time.time()
 
-    # check if last registered hello is older than 5 mins
-    for t in n_time[1:]:
-        diff = now-t
-        if diff > 300:
-            indices_to_delete.append(n_time.index(t))
-    indices_to_delete.reverse()
-    for e in indices_to_delete:
-        del neighbours[e]
-        del n_time[e]
-    threadLock.release()
+            # check if last registered hello is older than 5 mins
+            for t in n_time[1:]:
+                diff = now-t
+                if diff > 60:
+                    indices_to_delete.append(n_time.index(t))
+            indices_to_delete.reverse()
+            for e in indices_to_delete:
+                del neighbours[e]
+                increase_serialnumber()
+                update_own_lsdb_entry()
+                del n_time[e]
+            threadLock.release()
+        time.sleep(90)
 
-def new_hello_thread():
+def new_hello_thread(advertising: bool):
     """creates new send_hello_msg thread"""
     global send_hello_msg
-    send_hello_msg = threading.Thread(target=send_hello, daemon = True)
+    send_hello_msg = threading.Thread(target=send_hello, args=(advertising,), daemon = True)
 
 def listen():
 
@@ -538,18 +542,18 @@ def listen():
                 global hello_sent
                 global hello_offset
                 global start_dijkstra
-                # print("reset timer and start again")
+
                 t.cancel()
                 new_Timer()
                 t.start()
-                # print("timer started")
+
                 if source not in neighbours:
                     new_hello.append(source)
                     c = Counter(new_hello)
                     print(c)
 
                     # add node to neighbours after 3 hellos are received.
-                    if c[source] >= 3:
+                    if c[source] >= 1:
                         while source in new_hello: new_hello.remove(source)
                         print(new_hello)
 
@@ -599,13 +603,12 @@ sock_listen = register_socket(client_sock)
 sock_send = register_socket(client_sock+"1")
 ctl_sock = open_ctl_socket()
 
-new_hello_thread()
+new_hello_thread(False)
 listen = threading.Thread(target=listen, daemon = True)
 neighbours_check = threading.Thread(target=check_neighbours, daemon = True)
 update_routing_table = threading.Thread(target=update_rt, daemon= True)
 
 
-#go_to_rendez_vous = threading.Thread(target=go_to_rendez_vous, daemon = True)
 new_Timer()
 
 threadLock = threading.Lock()
@@ -619,7 +622,10 @@ time.sleep(3)
 print("starting send_hello")
 send_hello_msg.start()
 
-t.start()
+# start Timer to enable going to rv-channel after 5 mins of not receiving anything
+# t.start()
+
+neighbours_check.start()
 
 # while True:
 #     time.sleep(15)
