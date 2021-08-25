@@ -601,14 +601,12 @@ def listen():
 
 if __name__ == "__main__":
 
+    # initial setup
     # register send/receive clients
     # open control socket
     sock_listen = register_socket(client_sock)
     sock_send = register_socket(client_sock+"1")
     ctl_sock = open_ctl_socket()
-
-    # create hello thread without advertising
-    new_hello_thread(False)
 
     # create threads for listening, check if neighbours are alive, updating routing table
     listen = threading.Thread(target=listen, daemon = True)
@@ -617,10 +615,39 @@ if __name__ == "__main__":
 
     # create Timer to enable going to rv-channel after 5 mins of not receiving anything
     new_Timer()
-    # start Timer
-    t.start()
 
     threadLock = threading.Lock()
+
+
+    scenario = None
+    
+    if scenario == 1:
+        # SCENARIO 1: nodes joining the mesh
+        # mesh exists on given channel
+        # new nodes wait on rendez-vous channel
+        # nodes from the mesh will come on rendez-vous channel to advertise channel of the mesh
+        
+        # create hello thread with advertising
+        new_hello_thread(True)
+
+    
+    if scenario == 2:
+        # SCENARIO 2: Initializing the mesh
+        # nodes are scattered accross multiple channels, where they do not detect neighbours
+        # nodes go to rendez-vous channel to see if other nodes are around
+        # controller decides on channel to build the mesh and advertises it
+        # all nodes go to advertised channel and initialize mesh
+
+        # create hello thread without advertising
+        new_hello_thread(False)
+    
+
+    # if scenario == 3:
+        # SCENARIO 3: Reliable mesh
+        # controller decides on air data rate based on packets received ratio from all nodes
+        # nodes forward statistics to controller
+    
+
 
     print("starting listen")
     listen.start()
@@ -631,9 +658,12 @@ if __name__ == "__main__":
     send_hello_msg.start()
 
     neighbours_check.start()
+    update_routing_table.start()
 
+    # start Timer
+    t.start()
 
-
+    
     time.sleep(600)
 
 
