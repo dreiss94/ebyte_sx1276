@@ -237,7 +237,9 @@ def send_hello(advertising: bool):
         print("sending hello", barr)
         send(barr)
         counter += 1
-        time.sleep(30)
+        if counter >= 250:
+            counter = 0
+        time.sleep(120)
 
 
 def send_hello_once():
@@ -553,7 +555,7 @@ def listen():
                     print(c)
 
                     # add node to neighbours after 3 hellos are received.
-                    if c[source] >= 1:
+                    if c[source] >= 3:
                         while source in new_hello: new_hello.remove(source)
                         print(new_hello)
 
@@ -618,7 +620,7 @@ if __name__ == "__main__":
     # create Timer to enable going to rv-channel after 5 mins of not receiving anything
     new_Timer()
     # start Timer
-    t.start()
+    # t.start()
 
     threadLock = threading.Lock()
 
@@ -630,11 +632,11 @@ if __name__ == "__main__":
     print("starting send_hello")
     send_hello_msg.start()
 
-    neighbours_check.start()
+    # neighbours_check.start()
 
 
 
-    time.sleep(600)
+    time.sleep(7200)
 
 
 
