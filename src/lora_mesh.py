@@ -595,6 +595,10 @@ def listen():
                     global hello_percentage
                     hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
 
+                    if message[2] >= 250:
+                        # reset hello received counter (and hello_offset) to 0 if the received counter is 250
+                        hello_received[index] = 0
+                        hello_offset[index] = 0
         else:
             print("Message ", msg, " discarded because Im not next hop")
 
