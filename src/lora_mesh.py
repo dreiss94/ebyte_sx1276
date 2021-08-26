@@ -379,19 +379,18 @@ def elect_controller() -> int:
         controller = -1
     return controller
 
-def sendto_controller():
+def sendto_controller(index):
     """
     send packets received ratios to controller in multi-hop manner
     """
-
-    next_hop = routingTable[controller]
-    for i in range(1, len(neighbours)):
+    if myAddress != controller:
+        next_hop = routingTable[controller]
         # [next-hop, source, destination, payload]
-        msg = [next_hop, myAddress, controller, neighbours[i], hello_percentage[i]]
+        msg = [next_hop, myAddress, controller, neighbours[index], hello_percentage[index]]
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
         send(barr)
-        time.sleep(3)
+
 
 def go_to_rendez_vous():
     """switches to rendez-vous channel when no hello messages are received for 5 minutes"""
@@ -599,6 +598,10 @@ def listen():
                         # reset hello received counter (and hello_offset) to 0 if the received counter is 250
                         hello_received[index] = 0
                         hello_offset[index] = 0
+                    
+                    if (hello_received[index] % 10) == 0:
+                        if bool(routingTable):
+                            sendto_controller(index)
         else:
             print("Message ", msg, " discarded because Im not next hop")
 
