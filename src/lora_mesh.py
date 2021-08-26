@@ -4,6 +4,7 @@ import socket
 import sys
 import os, os.path
 from pathlib import Path
+import numpy
 import time
 import threading
 from routing import myAddress as myAddress
@@ -33,6 +34,8 @@ hello_sent = [-1, 0, 0, 0]
 hello_offset = [-1, 0, 0, 0]
 hello_received = [-1, 0, 0, 0]
 hello_percentage = [-1, -1, -1, -1]
+
+stats = numpy.full([5, 5], 0)
 
 controller = 1
 is_controller = True
@@ -391,6 +394,19 @@ def sendto_controller(index):
         print("Sending stats to controller", msg)
         send(barr)
 
+def analyse_stats():
+    """go through stats to determine state of mesh"""
+    state = None
+    sum = 0
+    count = 0
+    for x in stats:
+        for y in x:
+            if y != 0:
+                sum += y
+                count += 1
+    
+    
+
 
 def go_to_rendez_vous():
     """switches to rendez-vous channel when no hello messages are received for 5 minutes"""
@@ -475,6 +491,8 @@ def listen():
 
                 if destination == myAddress:
                     print(f"Message {msg} arrived at destination {myAddress} with payload: {message[3:]}")
+                    stats[source, message[3]] = message[4]
+                    
                 else:
                     fwd_message = [routingTable[destination], source, destination]
                     barr = bytearray(fwd_message)
