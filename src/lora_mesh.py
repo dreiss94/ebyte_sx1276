@@ -30,10 +30,10 @@ serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 n_time = [-1]
 new_hello = []
-hello_sent = [-1, 0, 0, 0]
-hello_offset = [-1, 0, 0, 0]
-hello_received = [-1, 0, 0, 0]
-hello_percentage = [-1, -1, -1, -1]
+hello_sent = [-1, 0, 0, 0, 0]
+hello_offset = [-1, 0, 0, 0, 0]
+hello_received = [-1, 0, 0, 0, ]
+hello_percentage = [-1, -1, -1, -1, 0]
 
 stats = numpy.full([5, 5], 0)
 
@@ -385,6 +385,7 @@ def elect_controller() -> int:
 def sendto_controller(index):
     """
     send packets received ratios to controller in multi-hop manner
+    if node is controller, it updates the stats and recalculates the state of the mesh
     """
     if myAddress != controller:
         next_hop = routingTable[controller]
@@ -393,10 +394,14 @@ def sendto_controller(index):
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
         send(barr)
+    else:
+        # update controller statistics
+        stats[myAddress] = [hello_percentage]
+        analyse_stats()
 
 def analyse_stats():
     """go through stats to determine state of mesh"""
-    state = None
+    state = True
     sum = 0
     count = 0
     for x in stats:
@@ -404,8 +409,10 @@ def analyse_stats():
             if y != 0:
                 sum += y
                 count += 1
-    
-    
+                if y < 95:
+                    state = False
+    print(f"The average percentage is: {(sum/count)}")
+    print(f"The current state of the mesh is: {state} \t True -> good, False -> bad")
 
 
 def go_to_rendez_vous():
