@@ -656,7 +656,7 @@ if __name__ == "__main__":
         new_hello_thread(True)
 
     
-    if scenario == 2:
+    elif scenario == 2:
         # SCENARIO 2: Initializing the mesh
         # nodes are scattered accross multiple channels, where they do not detect neighbours
         # nodes go to rendez-vous channel to see if other nodes are around
@@ -667,12 +667,14 @@ if __name__ == "__main__":
         new_hello_thread(False)
     
 
-    # if scenario == 3:
+    # elif scenario == 3:
         # SCENARIO 3: Reliable mesh
         # controller decides on air data rate based on packets received ratio from all nodes
         # nodes forward statistics to controller
     
 
+    else:
+        new_hello_thread(False)
 
     print("starting listen")
     listen.start()
