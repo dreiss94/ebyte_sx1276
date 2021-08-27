@@ -678,7 +678,9 @@ if __name__ == "__main__":
         # SCENARIO 3: Reliable mesh
         # controller decides on air data rate based on packets received ratio from all nodes
         # nodes forward statistics to controller
-    
+
+        # create hello thread without advertising
+        new_hello_thread(False)
 
     else:
         new_hello_thread(False)
@@ -698,7 +700,7 @@ if __name__ == "__main__":
     t.start()
 
     
-    time.sleep(600)
+    time.sleep(7200)
 
 
 
