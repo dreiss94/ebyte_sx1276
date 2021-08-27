@@ -390,7 +390,7 @@ def sendto_controller(index):
     if myAddress != controller:
         next_hop = routingTable[controller]
         # [next-hop, source, destination, payload]
-        msg = [next_hop, myAddress, controller, neighbours[index], hello_percentage[index]]
+        msg = [next_hop, myAddress, controller, neighbours[index], int(round(hello_percentage[index]))]
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
         send(barr)
@@ -577,7 +577,7 @@ def listen():
                     print(c)
 
                     # add node to neighbours after 3 hellos are received.
-                    if c[source] >= 1:
+                    if c[source] >= 3:
                         while source in new_hello: new_hello.remove(source)
                         print(new_hello)
 
@@ -651,7 +651,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = None
+    scenario = 3
     
     if scenario == 1:
         # SCENARIO 1: nodes joining the mesh
