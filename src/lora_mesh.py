@@ -30,10 +30,10 @@ serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 n_time = [-1]
 new_hello = []
-hello_sent = [-1, 0, 0, 0, 0]
-hello_offset = [-1, 0, 0, 0, 0]
-hello_received = [-1, 0, 0, 0, ]
-hello_percentage = [-1, -1, -1, -1, 0]
+hello_sent = [-1, 0, 0, 0, 0, 0]
+hello_offset = [-1, 0, 0, 0, 0, 0]
+hello_received = [-1, 0, 0, 0, 0, 0]
+hello_percentage = [-1, 0, 0, 0, 0, 0]
 
 stats = numpy.full([5, 5], 0)
 
@@ -396,7 +396,7 @@ def sendto_controller(index):
         send(barr)
     else:
         # update controller statistics
-        stats[myAddress] = [hello_percentage]
+        stats[myAddress] = hello_percentage[1:]
         analyse_stats()
 
 def analyse_stats():
