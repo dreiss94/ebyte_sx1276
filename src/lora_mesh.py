@@ -411,7 +411,8 @@ def analyse_stats():
                 count += 1
                 if y < 95:
                     state = False
-    print(f"The average percentage is: {(sum/count)}")
+    print(f"The average percentage is: {(sum/count)/2}")
+    print(f"The number of connections is: {(count/2)}")
     print(f"The current state of the mesh is: {state} \t True -> good, False -> bad")
 
 
