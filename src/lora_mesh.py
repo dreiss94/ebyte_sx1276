@@ -237,7 +237,7 @@ def send_hello(advertising: bool):
         print("sending hello", barr)
         send(barr)
         counter += 1
-        time.sleep(30)
+        time.sleep(60)
 
 
 def send_hello_once():
@@ -491,10 +491,10 @@ def listen():
         
         elif identifier == 253:
             # handle LSA request: send all entries in LSDB
-            time.sleep(1)
             print("answering LSA Request")
-
-            send_LSAs()
+            if message[2] == myAddress:
+                time.sleep(1)
+                send_LSAs()
 
 
         elif identifier == 254:
@@ -553,7 +553,7 @@ def listen():
                     print(c)
 
                     # add node to neighbours after 3 hellos are received.
-                    if c[source] >= 1:
+                    if c[source] >= 3:
                         while source in new_hello: new_hello.remove(source)
                         print(new_hello)
 
@@ -571,8 +571,8 @@ def listen():
                 elif len(message) > 3:
                     print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
                     if int.from_bytes(dict_hash()[:1], "big") != message[3]:
-                        send_LSAs()
-                        time.sleep(5)
+                        #send_LSAs()
+                        time.sleep(2)
                         request_LSA(source)
                         # if not update_routing_table.is_alive():
                         #     update_routing_table.start()
@@ -619,7 +619,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = None
+    scenario = 2
     
     if scenario == 1:
         # SCENARIO 1: nodes joining the mesh
