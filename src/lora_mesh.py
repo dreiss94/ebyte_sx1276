@@ -4,6 +4,7 @@ import socket
 import sys
 import os, os.path
 from pathlib import Path
+import numpy
 import time
 import threading
 from routing import myAddress as myAddress
@@ -29,10 +30,12 @@ serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 n_time = [-1]
 new_hello = []
-hello_sent = [-1, 0, 0, 0]
-hello_offset = [-1, 0, 0, 0]
-hello_received = [-1, 0, 0, 0]
-hello_percentage = [-1, -1, -1, -1]
+hello_sent = [-1, 0, 0, 0, 0, 0]
+hello_offset = [-1, 0, 0, 0, 0, 0]
+hello_received = [-1, 0, 0, 0, 0, 0]
+hello_percentage = [-1, 0, 0, 0, 0, 0]
+
+stats = numpy.full([5, 5], 0)
 
 controller = 1
 is_controller = True
@@ -379,19 +382,39 @@ def elect_controller() -> int:
         controller = -1
     return controller
 
-def sendto_controller():
+def sendto_controller(index):
     """
     send packets received ratios to controller in multi-hop manner
+    if node is controller, it updates the stats and recalculates the state of the mesh
     """
-
-    next_hop = routingTable[controller]
-    for i in range(1, len(neighbours)):
+    if myAddress != controller:
+        next_hop = routingTable[controller]
         # [next-hop, source, destination, payload]
-        msg = [next_hop, myAddress, controller, neighbours[i], hello_percentage[i]]
+        msg = [next_hop, myAddress, controller, neighbours[index], int(round(hello_percentage[index]))]
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
         send(barr)
-        time.sleep(3)
+    else:
+        # update controller statistics
+        stats[myAddress] = hello_percentage[1:]
+        analyse_stats()
+
+def analyse_stats():
+    """go through stats to determine state of mesh"""
+    state = True
+    sum = 0
+    count = 0
+    for x in stats:
+        for y in x:
+            if y != 0:
+                sum += y
+                count += 1
+                if y < 95:
+                    state = False
+    print(f"The average percentage is: {(sum/count)/2}")
+    print(f"The number of connections is: {(count/2)}")
+    print(f"The current state of the mesh is: {state} \t True -> good, False -> bad")
+
 
 def go_to_rendez_vous():
     """switches to rendez-vous channel when no hello messages are received for 5 minutes"""
@@ -476,6 +499,8 @@ def listen():
 
                 if destination == myAddress:
                     print(f"Message {msg} arrived at destination {myAddress} with payload: {message[3:]}")
+                    stats[source, message[3]] = message[4]
+                    
                 else:
                     fwd_message = [routingTable[destination], source, destination]
                     barr = bytearray(fwd_message)
@@ -595,6 +620,14 @@ def listen():
                     global hello_percentage
                     hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
 
+                    if message[2] >= 250:
+                        # reset hello received counter (and hello_offset) to 0 if the received counter is 250
+                        hello_received[index] = 0
+                        hello_offset[index] = 0
+                    
+                    if (hello_received[index] % 10) == 0:
+                        if bool(routingTable):
+                            sendto_controller(index)
         else:
             print("Message ", msg, " discarded because Im not next hop")
 
@@ -631,7 +664,7 @@ if __name__ == "__main__":
         new_hello_thread(True)
 
     
-    if scenario == 2:
+    elif scenario == 2:
         # SCENARIO 2: Initializing the mesh
         # nodes are scattered accross multiple channels, where they do not detect neighbours
         # nodes go to rendez-vous channel to see if other nodes are around
@@ -642,12 +675,16 @@ if __name__ == "__main__":
         new_hello_thread(False)
     
 
-    # if scenario == 3:
+    # elif scenario == 3:
         # SCENARIO 3: Reliable mesh
         # controller decides on air data rate based on packets received ratio from all nodes
         # nodes forward statistics to controller
-    
 
+        # create hello thread without advertising
+        new_hello_thread(False)
+
+    else:
+        new_hello_thread(False)
 
     print("starting listen")
     listen.start()
@@ -664,7 +701,7 @@ if __name__ == "__main__":
     t.start()
 
     
-    time.sleep(600)
+    time.sleep(7200)
 
 
 
