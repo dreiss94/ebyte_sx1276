@@ -8,6 +8,7 @@ import os, os.path
 import numpy as np
 from routing import myAddress
 
+NUMBER_OF_NODES = 5
 
 def get_adjacency_matrix(lsdb):
 	"""converts LSDB to adjacency matrix"""
@@ -18,7 +19,7 @@ def get_adjacency_matrix(lsdb):
 
 	k = list(lsdb.keys())
 
-	M = np.full([len(k), len(k)], 999)
+	M = np.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 999)
 
 	for i in k:
 		n = lsdb[i][1:]
@@ -36,6 +37,7 @@ def dijkstra(lsdb):
 		destination : next_hop}"""
 
 	G = get_adjacency_matrix(lsdb)
+	print("Adj Matrix:\n", G)
 	
 	destination_nexthop = {}
 
