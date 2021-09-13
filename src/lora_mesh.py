@@ -398,6 +398,7 @@ def sendto_controller(index):
         # update controller statistics
         stats[myAddress] = hello_percentage[1:]
         analyse_stats()
+        print(stats)
 
 def analyse_stats():
     """go through stats to determine state of mesh"""
@@ -411,7 +412,7 @@ def analyse_stats():
                 count += 1
                 if y < 95:
                     state = False
-    print(f"The average percentage is: {(sum/count)/2}")
+    print(f"The average percentage is: {(sum/count)}")
     print(f"The number of connections is: {(count/2)}")
     print(f"The current state of the mesh is: {state} \t True -> good, False -> bad")
 
@@ -496,13 +497,15 @@ def listen():
             # multi-hop
             try:
                 destination = message[2]
+                payload = message[3:]
 
                 if destination == myAddress:
-                    print(f"Message {msg} arrived at destination {myAddress} with payload: {message[3:]}")
+                    print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}")
                     stats[source, message[3]] = message[4]
+                    print(stats)
                     
                 else:
-                    fwd_message = [routingTable[destination], source, destination]
+                    fwd_message = [routingTable[destination], source, destination, payload]
                     barr = bytearray(fwd_message)
 
                     print("forwarding message", fwd_message)
@@ -652,7 +655,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = 2
+    scenario = 3
     
     if scenario == 1:
         # SCENARIO 1: nodes joining the mesh
