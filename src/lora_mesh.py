@@ -188,7 +188,7 @@ def send_hello(advertising: bool):
         
         if advertising:
             # change to rendez-vous channel
-            if (counter % 10) == 0 and bool(routingTable):
+            if (counter % 15) == 0 and bool(routingTable):
 
                 print("changing to rendez-vous channel to advertise mesh channel")
 
@@ -209,8 +209,8 @@ def send_hello(advertising: bool):
 
                 # time.sleep(5)
 
-                # stay on rendez-vous for 2 mins to gather information if node wants to join
-                for i in range(1,4):
+                # stay on rendez-vous for 1 min to gather information if node wants to join
+                for i in range(1,3):
 
                     send_rendez_vous_hello()
                     time.sleep(25)
@@ -285,7 +285,7 @@ def join_mesh(adr):
     # start sending hellos and reset 5 min timer
     stop_hello.clear()
     print("restarting timer and hello messages")
-    new_hello_thread()
+    new_hello_thread(True)
     send_hello_msg.start()
     new_Timer()
     t.start()
@@ -675,7 +675,7 @@ if __name__ == "__main__":
         new_hello_thread(False)
     
 
-    # elif scenario == 3:
+    elif scenario == 3:
         # SCENARIO 3: Reliable mesh
         # controller decides on air data rate based on packets received ratio from all nodes
         # nodes forward statistics to controller
@@ -697,8 +697,9 @@ if __name__ == "__main__":
     neighbours_check.start()
     update_routing_table.start()
 
-    # start Timer
-    t.start()
+    if scenario == 2 or scenario == 3:
+        # start Timer
+        t.start()
 
     
     time.sleep(7200)
