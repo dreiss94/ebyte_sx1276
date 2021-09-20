@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy
 import time
 import threading
+
+from numpy.core.records import array
 from routing import myAddress as myAddress
 from dijkstra import dijkstra
 from typing import Dict, Any
@@ -26,16 +28,17 @@ os.system("sudo systemctl daemon-reload")
 os.system("sudo systemctl start e32")
 
 # globals
+NODES = 4
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 n_time = [-1]
 new_hello = []
-hello_sent = [-1, 0, 0, 0, 0, 0]
-hello_offset = [-1, 0, 0, 0, 0, 0]
-hello_received = [-1, 0, 0, 0, 0, 0]
-hello_percentage = [-1, 0, 0, 0, 0, 0]
+hello_sent = numpy.full(NODES+1, 0)
+hello_offset = numpy.full(NODES+1, 0)
+hello_received = numpy.full(NODES+1, 0)
+hello_percentage = numpy.full(NODES+1, 0)
 
-stats = numpy.full([5, 5], 0)
+stats = numpy.full([NODES, NODES], 0)
 
 controller = 1
 is_controller = True
@@ -402,19 +405,33 @@ def sendto_controller(index):
 
 def analyse_stats():
     """go through stats to determine state of mesh"""
-    state = True
+
     sum = 0
     count = 0
     for x in stats:
         for y in x:
             if y != 0:
+                # take percentage into consideration
                 sum += y
                 count += 1
-                if y < 95:
-                    state = False
+    
     print(f"The average percentage is: {(sum/count)}")
+    print(f"The number of single connections is: {(count)}")
     print(f"The number of connections is: {(count/2)}")
-    print(f"The current state of the mesh is: {state} \t True -> good, False -> bad")
+    
+    if count > 2*NODES:
+        print(f"count {count} > 2*nodes {(2*NODES)}, therefore increasing the speed")
+        increase_speed()
+    
+    if count < NODES:
+        decrease_speed()
+
+
+def increase_speed():
+    return 0
+
+def decrease_speed():
+    return 0
 
 
 def go_to_rendez_vous():
