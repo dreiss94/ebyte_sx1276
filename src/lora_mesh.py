@@ -535,11 +535,12 @@ def listen():
         
         
         elif identifier == 253:
-            # handle LSA request: send all entries in LSDB
-            print("answering LSA Request")
-            if message[2] == myAddress:
-                time.sleep(1)
-                send_LSAs()
+            if myAddress == message[2]:
+                # handle LSA request: send all entries in LSDB
+                print("answering LSA Request")
+                if message[2] == myAddress:
+                    time.sleep(1)
+                    send_LSAs()
 
 
         elif identifier == 254:
@@ -672,7 +673,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = 3
+    scenario = 1
     
     if scenario == 1:
         # SCENARIO 1: nodes joining the mesh
