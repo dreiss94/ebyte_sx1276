@@ -8,7 +8,7 @@ import os, os.path
 import numpy as np
 from routing import myAddress
 
-from lora_mesh import NODES
+NUMBER_OF_NODES = 5
 
 def get_adjacency_matrix(lsdb):
 	"""converts LSDB to adjacency matrix"""
@@ -19,7 +19,7 @@ def get_adjacency_matrix(lsdb):
 
 	k = list(lsdb.keys())
 
-	M = np.full([NODES, NODES], 999)
+	M = np.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 999)
 
 	for i in k:
 		n = lsdb[i][1:]

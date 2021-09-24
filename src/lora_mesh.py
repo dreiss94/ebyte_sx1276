@@ -10,7 +10,7 @@ import threading
 
 from numpy.core.records import array
 from routing import myAddress as myAddress
-from dijkstra import dijkstra
+from dijkstra import dijkstra, NUMBER_OF_NODES
 from typing import Dict, Any
 from collections import Counter
 import hashlib
@@ -28,17 +28,16 @@ os.system("sudo systemctl daemon-reload")
 os.system("sudo systemctl start e32")
 
 # globals
-NODES = 4
 serial_number = 10
 neighbours = [serial_number] # [version, N1, N2, N3, ..., Nn]
 n_time = [-1]
 new_hello = []
-hello_sent = numpy.full(NODES+1, 0)
-hello_offset = numpy.full(NODES+1, 0)
-hello_received = numpy.full(NODES+1, 0)
-hello_percentage = numpy.full(NODES+1, 0)
+hello_sent = numpy.full(NUMBER_OF_NODES+1, 0)
+hello_offset = numpy.full(NUMBER_OF_NODES+1, 0)
+hello_received = numpy.full(NUMBER_OF_NODES+1, 0)
+hello_percentage = numpy.full(NUMBER_OF_NODES+1, 0)
 
-stats = numpy.full([NODES, NODES], 0)
+stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
 
 controller = 1
 is_controller = True
@@ -419,11 +418,11 @@ def analyse_stats():
     print(f"The number of single connections is: {(count)}")
     print(f"The number of connections is: {(count/2)}")
     
-    if count > 2*NODES:
-        print(f"count {count} > 2*nodes {(2*NODES)}, therefore increasing the speed")
+    if count > 2*NUMBER_OF_NODES:
+        print(f"count {count} > 2*nodes {(2*NUMBER_OF_NODES)}, therefore increasing the speed")
         increase_speed()
     
-    if count < NODES:
+    if count < NUMBER_OF_NODES:
         decrease_speed()
 
 
