@@ -112,9 +112,10 @@ def dijkstra(lsdb):
 				route.append(x)
 				x = pi[x]
 			route.reverse()
-			
-		destination_nexthop[destination] = route[0]
-
+		try:	
+			destination_nexthop[destination] = route[0]
+		except:
+			pass
 		# print("route:", route) # Display the route
 		# print("path:", pi) # Display the path vector
 		# print("distance from source:", d) # Display the distance of each node from source
