@@ -52,6 +52,7 @@ current_adr = 0x1a # default (2.4kbps)
 default_channel = 0x1a # default (2.4kbps)
 
 joining_nodes = []
+counter = 0
 
 start_dijkstra = False
 stop_listen = threading.Event()
@@ -405,25 +406,31 @@ def sendto_controller(index):
 def analyse_stats():
     """go through stats to determine state of mesh"""
 
-    sum = 0
-    count = 0
-    for x in stats:
-        for y in x:
-            if y != 0:
-                # take percentage into consideration
-                sum += y
-                count += 1
-    
-    print(f"The average percentage is: {(sum/count)}")
-    print(f"The number of single connections is: {(count)}")
-    print(f"The number of connections is: {(count/2)}")
-    
-    if count > 2*NUMBER_OF_NODES:
-        print(f"count {count} > 2*nodes {(2*NUMBER_OF_NODES)}, therefore increasing the speed")
-        increase_speed()
-    
-    if count < NUMBER_OF_NODES:
-        decrease_speed()
+    global counter
+
+    counter += 1
+
+    if counter >= NUMBER_OF_NODES:
+        sum = 0
+        count = 0
+        for x in stats:
+            for y in x:
+                if y != 0:
+                    # take percentage into consideration
+                    sum += y
+                    count += 1
+        
+        print(f"The average percentage is: {(sum/count)}")
+        print(f"The number of single connections is: {(count)}")
+        print(f"The number of connections is: {(count/2)}")
+        
+        if count > 2*(NUMBER_OF_NODES-1):
+            print(f"count {count} > 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore increasing the speed")
+            increase_speed()
+        
+        if count < 2*(NUMBER_OF_NODES-1):
+            print(f"count {count} < 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore decreasing the speed")
+            decrease_speed()
 
 
 def increase_speed():
@@ -542,14 +549,23 @@ def listen():
                     send_LSAs()
 
 
+        
+
         elif identifier == 254:
             # handle LSA [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
 
             if source != myAddress:
                 # only gather information about foreign nodes
 
+                
+
                 if source not in lsdb.keys() or lsdb[source][0] < message[2]:
                     lsdb_set_lsa(message)
+                    global start_dijkstra
+                    time.sleep(3)
+                    
+                    start_dijkstra = True
+                    update_rt()
 
 
         elif identifier == 255:
@@ -586,7 +602,7 @@ def listen():
                 global hello_received
                 global hello_sent
                 global hello_offset
-                global start_dijkstra
+                
 
                 t.cancel()
                 new_Timer()
@@ -672,7 +688,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = 1
+    scenario = 3
     
     if scenario == 1:
         # SCENARIO 1: nodes joining the mesh
