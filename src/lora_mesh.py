@@ -39,8 +39,7 @@ hello_percentage = numpy.full(NUMBER_OF_NODES+1, 0)
 
 stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
 
-controller = 1
-is_controller = True
+controller = 0 # BIN is the controller
 
 routingTable = {}
 
@@ -694,20 +693,10 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = 3
+    scenario = 1
     
     if scenario == 1:
-        # SCENARIO 1: nodes joining the mesh
-        # mesh exists on given channel
-        # new nodes wait on rendez-vous channel
-        # nodes from the mesh will come on rendez-vous channel to advertise channel of the mesh
-        
-        # create hello thread with advertising
-        new_hello_thread(True)
-
-    
-    elif scenario == 2:
-        # SCENARIO 2: Initializing the mesh
+        # SCENARIO 1: Initializing the mesh
         # nodes are scattered accross multiple channels, where they do not detect neighbours
         # nodes go to rendez-vous channel to see if other nodes are around
         # controller decides on channel to build the mesh and advertises it
@@ -715,6 +704,17 @@ if __name__ == "__main__":
 
         # create hello thread without advertising
         new_hello_thread(False)
+
+    
+    elif scenario == 2:
+        
+        # SCENARIO 2: nodes joining the mesh
+        # mesh exists on given channel
+        # new nodes wait on rendez-vous channel
+        # nodes from the mesh will come on rendez-vous channel to advertise channel of the mesh
+        
+        # create hello thread with advertising
+        new_hello_thread(True)
     
 
     elif scenario == 3:
@@ -739,7 +739,7 @@ if __name__ == "__main__":
     neighbours_check.start()
     update_routing_table.start()
 
-    if scenario == 2 or scenario == 3:
+    if scenario == 1 or scenario == 3:
         # start Timer
         t.start()
 
