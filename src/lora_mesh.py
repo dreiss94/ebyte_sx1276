@@ -555,7 +555,7 @@ def listen():
         elif identifier == 254:
             # handle LSA [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
 
-            if source != myAddress:
+            if source != myAddress and neighbours:
                 # only gather information about foreign nodes
 
                 
