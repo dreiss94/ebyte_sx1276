@@ -396,7 +396,9 @@ def sendto_controller(index):
         msg = [next_hop, myAddress, controller, neighbours[index], int(round(hello_percentage[index]))]
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
-        send(barr)
+        for i in range(2):
+            send(barr)
+            time.sleep(5)
     else:
         # update controller statistics
         stats[myAddress] = hello_percentage[1:]
