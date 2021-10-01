@@ -60,6 +60,10 @@ stop_hello = threading.Event()
 stop_checking = threading.Event()
 
 
+
+counter_LSA = 0
+counter_LSR = 0
+
 def register_socket(s):
     """registers clients for e32.data socket"""
 
@@ -187,6 +191,7 @@ def send_hello(advertising: bool):
         every 10th message is on rendez-vous channel at 0.3kbps 
     """
     counter = random.randint(1,9)
+    start = counter
     while not stop_hello.is_set():
         
         if advertising:
@@ -243,6 +248,7 @@ def send_hello(advertising: bool):
         print("sending hello", barr)
         send(barr)
         counter += 1
+        print(f"Node {myAddress} has sent {counter - start} hello packets.\n")
         time.sleep(HELLO_TIMEOUT)
 
 
@@ -300,7 +306,7 @@ def increase_serialnumber():
 
 def send_LSAs():
     """sends all LSDB entries in LSA structure: [254, Source/Key, version, neighbour1, neighbour2, ...]"""
-    
+    global counter_LSA
     for key, value in lsdb.items():
 
         message = [254, key, value[0]]
@@ -308,12 +314,15 @@ def send_LSAs():
         print("sending", message)
         send(bytearray(message))
         time.sleep(3)
+        counter_LSA += 1
+        print(f"Node {myAddress} has sent {counter_LSA} LSA packets.\n")
 
 def request_LSA(target):
     """"Requests LSA at node that has different hash"""
 
     # send hello first (timeout = 30s) to make sure other node has entry
 
+    global counter_LSR
     time.sleep(5)
 
     message = [253, myAddress, target] 
@@ -321,6 +330,8 @@ def request_LSA(target):
     
     print("requesting LSA", message)
     send(barr)
+
+    print(f"Node {myAddress} has sent {counter_LSR} LSR packets")
 
 def update_own_lsdb_entry():
     """
