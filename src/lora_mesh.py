@@ -523,12 +523,13 @@ def listen():
                 payload = message[3:]
 
                 if destination == myAddress:
-                    print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}")
+                    print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}\nStats are updated:")
                     stats[source, message[3]] = message[4]
                     print(stats)
                     
                 else:
-                    fwd_message = [routingTable[destination], source, destination, payload]
+                    fwd_message = [routingTable[destination], source, destination]
+                    fwd_message.extend(payload)
                     barr = bytearray(fwd_message)
 
                     print("forwarding message", fwd_message)
@@ -656,12 +657,13 @@ def listen():
                     global hello_percentage
                     hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
 
+                    print(f"hello received: {hello_received}")
                     if message[2] >= 250:
                         # reset hello received counter (and hello_offset) to 0 if the received counter is 250
                         hello_received[index] = 0
                         hello_offset[index] = 0
                     
-                    if (hello_received[index] % 10) == 0:
+                    if (hello_received[index] % 3) == 0:
                         if bool(routingTable):
                             sendto_controller(index)
         else:
