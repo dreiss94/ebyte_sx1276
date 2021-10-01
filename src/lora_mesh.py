@@ -663,7 +663,7 @@ def listen():
                         hello_received[index] = 0
                         hello_offset[index] = 0
                     
-                    if (hello_received[index] % 3) == 0:
+                    if (hello_received[index] % 10) == 0:
                         if bool(routingTable):
                             sendto_controller(index)
         else:
