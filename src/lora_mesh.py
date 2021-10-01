@@ -555,6 +555,8 @@ def listen():
         elif identifier == 254:
             # handle LSA [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
 
+            global neighbours
+
             if source != myAddress and neighbours:
                 # only gather information about foreign nodes
 
@@ -598,7 +600,7 @@ def listen():
 
             else:
                 # standard hello message [255, source, counter, hash]
-                global neighbours
+                
                 global new_hello
                 global hello_received
                 global hello_sent
