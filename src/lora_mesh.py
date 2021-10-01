@@ -40,6 +40,7 @@ hello_percentage = numpy.full(NUMBER_OF_NODES+1, 0)
 stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
 
 controller = 0 # BIN is the controller
+HELLO_TIMEOUT = 100
 
 routingTable = {}
 
@@ -242,7 +243,7 @@ def send_hello(advertising: bool):
         print("sending hello", barr)
         send(barr)
         counter += 1
-        time.sleep(60)
+        time.sleep(HELLO_TIMEOUT)
 
 
 def send_hello_once():
