@@ -331,6 +331,7 @@ def request_LSA(target):
     print("requesting LSA", message)
     send(barr)
 
+    counter_LSR += 1
     print(f"Node {myAddress} has sent {counter_LSR} LSR packets")
 
 def update_own_lsdb_entry():
