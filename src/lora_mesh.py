@@ -571,15 +571,14 @@ def listen():
 
             global neighbours
 
-            if bool(neighbours[1:]):
-                if source != myAddress:
-                    # only gather information about foreign nodes
+            if source != myAddress:
+                # only gather information about foreign nodes
 
-                    if source not in lsdb.keys() or lsdb[source][0] < message[2]:
-                        lsdb_set_lsa(message)
-                        global start_dijkstra
-                        time.sleep(3)
-                        
+                if source not in lsdb.keys() or lsdb[source][0] < message[2]:
+                    lsdb_set_lsa(message)
+                    global start_dijkstra
+                    time.sleep(3)
+                    if bool(neighbours[1:]):
                         start_dijkstra = True
                         update_rt()
 
