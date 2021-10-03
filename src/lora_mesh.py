@@ -314,7 +314,7 @@ def send_LSAs():
         message.extend(value[1:])
         print("sending LSA", message)
         send(bytearray(message))
-        time.sleep(3)
+        time.sleep(random.randint(0,3))
         counter_LSA += 1
         print(f"\nNode {myAddress} has sent {counter_LSA} LSA packets.\n")
 
