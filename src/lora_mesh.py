@@ -48,8 +48,8 @@ hash_difference = False
 
 lsdb = {}
 
-current_adr = 0x1a # default (2.4kbps)
-default_channel = 0x1a # default (2.4kbps)
+current_adr = 0x19 # default (2.4kbps)
+default_channel = 0x19 # 0x1a is default (2.4kbps) # here, its lowered
 
 joining_nodes = []
 counter = 0
@@ -292,6 +292,7 @@ def join_mesh(adr):
     stop_listen.clear()
 
     # start sending hellos and reset 5 min timer
+    time.sleep(random.randint(0,HELLO_TIMEOUT))
     stop_hello.clear()
     print("restarting timer and hello messages")
     new_hello_thread(True)
