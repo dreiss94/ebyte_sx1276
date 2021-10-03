@@ -311,11 +311,11 @@ def send_LSAs():
 
         message = [254, key, value[0]]
         message.extend(value[1:])
-        print("sending", message)
+        print("sending LSA", message)
         send(bytearray(message))
         time.sleep(3)
         counter_LSA += 1
-        print(f"Node {myAddress} has sent {counter_LSA} LSA packets.\n")
+        print(f"\nNode {myAddress} has sent {counter_LSA} LSA packets.\n")
 
 def request_LSA(target):
     """"Requests LSA at node that has different hash"""
@@ -328,11 +328,11 @@ def request_LSA(target):
     message = [253, myAddress, target] 
     barr = bytearray(message)
     
-    print("requesting LSA", message)
+    print("requesting LSA, sending LSR", message)
     send(barr)
 
     counter_LSR += 1
-    print(f"Node {myAddress} has sent {counter_LSR} LSR packets")
+    print(f"\nNode {myAddress} has sent {counter_LSR} LSR packets")
 
 def update_own_lsdb_entry():
     """
