@@ -576,12 +576,15 @@ def listen():
                 # only gather information about foreign nodes
 
                 if source not in lsdb.keys() or lsdb[source][0] < message[2]:
-                    lsdb_set_lsa(message)
-                    global start_dijkstra
-                    time.sleep(3)
-                    if bool(neighbours[1:]):
-                        start_dijkstra = True
-                        update_rt()
+                    if source == 16:
+                        pass
+                    else:
+                        lsdb_set_lsa(message)
+                        global start_dijkstra
+                        time.sleep(3)
+                        if bool(neighbours[1:]):
+                            start_dijkstra = True
+                            update_rt()
 
 
         elif identifier == 255:
