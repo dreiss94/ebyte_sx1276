@@ -40,7 +40,7 @@ hello_percentage = numpy.full(NUMBER_OF_NODES+1, 0)
 stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
 
 controller = 0 # BIN is the controller
-HELLO_TIMEOUT = 100
+HELLO_TIMEOUT = 60
 
 routingTable = {}
 
@@ -571,7 +571,7 @@ def listen():
 
             global neighbours
 
-            if bool(neighbours):
+            if bool(neighbours[1:]):
                 if source != myAddress:
                     # only gather information about foreign nodes
 
