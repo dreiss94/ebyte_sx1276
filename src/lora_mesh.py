@@ -248,7 +248,7 @@ def send_hello(advertising: bool):
         print("sending hello", barr)
         send(barr)
         counter += 1
-        print(f"Node {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
+        print(f"\nNode {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
         time.sleep(HELLO_TIMEOUT)
 
 
