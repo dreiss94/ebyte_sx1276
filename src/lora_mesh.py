@@ -484,6 +484,30 @@ def analyse_stats():
     #         decrease_speed()
 
 
+def send_new_adr(adr):
+    # send first to further nodes
+    for i in routingTable.keys():
+        next_hop = routingTable[i]
+        if i != routingTable[i]:
+            # [next-hop, source, destination, payload]
+            msg = [next_hop, myAddress, i, adr]
+            barr = bytearray(msg)
+            print(f"Sending adr to node {i}: msg")
+            for i in range(2):
+                send(barr)
+                time.sleep(random.randint(0,3))
+        
+    for i in routingTable.keys():
+        next_hop = routingTable[i]
+        if i == routingTable[i]:
+            # [next-hop, source, destination, payload]
+            msg = [next_hop, myAddress, i, adr]
+            barr = bytearray(msg)
+            print(f"Sending adr to node {i}: msg")
+            for i in range(2):
+                send(barr)
+                time.sleep(random.randint(0,3))
+
 def increase_speed():
     print("advertise increased channel")
 
@@ -496,51 +520,42 @@ def increase_speed():
 
         global routingTable
 
-        for i in routingTable.keys():
-            next_hop = routingTable[i]
-            # [next-hop, source, destination, payload]
-            msg = [next_hop, myAddress, i, adr]
-            barr = bytearray(msg)
-            print(f"Sending adr to node {i}: msg")
-            for i in range(2):
-                send(barr)
-                time.sleep(random.randint(0,3))
-
+        send_new_adr(adr)
             
-            global stop_listen
-            global stop_hello
-            global lsdb
-            global neighbours
+        global stop_listen
+        global stop_hello
+        global lsdb
+        global neighbours
 
-            stop_listen.set()
-            stop_hello.set()
-            set_adr(adr)
+        stop_listen.set()
+        stop_hello.set()
+        set_adr(adr)
 
-            lsdb.clear()
-            neighbours.clear()
-            neighbours.append(serial_number)
-            routingTable.clear()
+        lsdb.clear()
+        neighbours.clear()
+        neighbours.append(serial_number)
+        routingTable.clear()
 
-            time.sleep(5)
+        time.sleep(5)
 
-            # change air data rate to payload
-            change_adr(adr)
+        # change air data rate to payload
+        change_adr(adr)
 
-            time.sleep(5)
+        time.sleep(5)
 
-            stop_listen.clear()
-            # stop_hello.clear()
+        stop_listen.clear()
+        # stop_hello.clear()
 
-            # start sending hellos and reset 5 min timer
-            time.sleep(random.randint(0,HELLO_TIMEOUT))
-            stop_hello.clear()
-            print("restarting timer and hello messages")
-            new_hello_thread(True)
-            send_hello_msg.start()
-            new_Timer()
-            t.start()
+        # start sending hellos and reset 5 min timer
+        time.sleep(random.randint(0,HELLO_TIMEOUT))
+        stop_hello.clear()
+        print("restarting timer and hello messages")
+        new_hello_thread(True)
+        send_hello_msg.start()
+        new_Timer()
+        t.start()
 
-            time.sleep(2)
+        time.sleep(2)
 
     else:
         print("Maximum air data rate is reached")
@@ -563,15 +578,7 @@ def decrease_speed():
 
         global routingTable
 
-        for i in routingTable.keys():
-            next_hop = routingTable[i]
-            # [next-hop, source, destination, payload]
-            msg = [next_hop, myAddress, i, adr]
-            barr = bytearray(msg)
-            print(f"Sending adr to node {i}: msg")
-            for i in range(2):
-                send(barr)
-                time.sleep(random.randint(0,3))
+        send_new_adr(adr)
         
         global stop_listen
         global stop_hello
