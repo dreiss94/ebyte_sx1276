@@ -678,10 +678,14 @@ def check_neighbours():
                     indices_to_delete.append(n_time.index(t))
             indices_to_delete.reverse()
             for e in indices_to_delete:
-                del neighbours[e]
-                increase_serialnumber()
+                try:
+                    del n_time[e]
+                    del neighbours[e]
+                except:
+                    pass
                 update_own_lsdb_entry()
-                del n_time[e]
+                increase_serialnumber()
+                
             threadLock.release()
         time.sleep(55)
 
