@@ -434,12 +434,18 @@ def analyse_stats():
 
     if counter >= NUMBER_OF_NODES:
         if stop_increasing == False:
-            for i in lsdb.keys():
-                if i not in lsdb.values():
+            keys = lsdb.keys()
+            values = lsdb.values()
+            vals = []
+            for e in values:
+                vals.extend(e)
+            
+            for i in keys:
+                if i not in vals:
                     increase = False
                     decrease_speed()
                     break
-    
+
             if increase == True:
                 increase_speed()
         else:
