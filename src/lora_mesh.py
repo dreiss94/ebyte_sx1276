@@ -443,10 +443,12 @@ def analyse_stats():
             for i in keys:
                 if i not in vals:
                     increase = False
+                    counter = 1
                     decrease_speed()
                     break
 
             if increase == True:
+                counter = 1
                 increase_speed()
         else:
             #stay
