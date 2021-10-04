@@ -485,12 +485,136 @@ def analyse_stats():
 
 
 def increase_speed():
-    print("increasing speed")
+    print("advertise increased channel")
+
+    adr = get_adr()
+    time.sleep(3)
+    
+    if adr <= 28:
+
+        adr += 1
+
+        for i in routingTable.keys():
+            next_hop = routingTable[i]
+            # [next-hop, source, destination, payload]
+            msg = [next_hop, myAddress, i, adr]
+            barr = bytearray(msg)
+            print(f"Sending adr to node {i}: msg")
+            for i in range(2):
+                send(barr)
+                time.sleep(random.randint(0,3))
+
+            
+            global stop_listen
+            global stop_hello
+            global lsdb
+            global neighbours
+            global routingTable
+
+            stop_listen.set()
+            stop_hello.set()
+            set_adr(adr)
+
+            lsdb.clear()
+            neighbours.clear()
+            neighbours.append(serial_number)
+            routingTable.clear()
+
+            time.sleep(5)
+
+            # change air data rate to payload
+            change_adr(adr)
+
+            time.sleep(5)
+
+            stop_listen.clear()
+            # stop_hello.clear()
+
+            # start sending hellos and reset 5 min timer
+            time.sleep(random.randint(0,HELLO_TIMEOUT))
+            stop_hello.clear()
+            print("restarting timer and hello messages")
+            new_hello_thread(True)
+            send_hello_msg.start()
+            new_Timer()
+            t.start()
+
+            time.sleep(2)
+
+    else:
+        print("Maximum air data rate is reached")
+
+    
+    #controller change speed
+
 
 def decrease_speed():
     global stop_increasing
     stop_increasing = True
-    print("decreasing speed")
+    print("advertise decreased channel")
+    
+    adr = get_adr()
+    time.sleep(3)
+    
+    if adr >= 25:
+        
+        adr -= 1
+
+        for i in routingTable.keys():
+            next_hop = routingTable[i]
+            # [next-hop, source, destination, payload]
+            msg = [next_hop, myAddress, i, adr]
+            barr = bytearray(msg)
+            print(f"Sending adr to node {i}: msg")
+            for i in range(2):
+                send(barr)
+                time.sleep(random.randint(0,3))
+        
+        global stop_listen
+        global stop_hello
+        global lsdb
+        global neighbours
+        global routingTable
+
+        stop_listen.set()
+        stop_hello.set()
+        set_adr(adr)
+
+        lsdb.clear()
+        neighbours.clear()
+        neighbours.append(serial_number)
+        routingTable.clear()
+
+        time.sleep(5)
+
+        # change air data rate to payload
+        change_adr(adr)
+
+        time.sleep(5)
+
+        stop_listen.clear()
+        # stop_hello.clear()
+
+        # start sending hellos and reset 5 min timer
+        time.sleep(random.randint(0,HELLO_TIMEOUT))
+        stop_hello.clear()
+        print("restarting timer and hello messages")
+        new_hello_thread(True)
+        send_hello_msg.start()
+        new_Timer()
+        t.start()
+
+        time.sleep(2)
+        
+        
+        
+
+
+    else:
+        print("Lowest air data rate is reached, consider building mesh on rendez vous channel")
+
+
+
 
 
 def go_to_rendez_vous():
@@ -576,9 +700,48 @@ def listen():
                 payload = message[3:]
 
                 if destination == myAddress:
-                    print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}\nStats are updated:")
-                    stats[source, message[3]] = message[4]
-                    print(stats)
+                    if len(payload) == 1:
+                        # handle increasing or decreasing adr
+                        global stop_listen
+                        global stop_hello
+                        global lsdb
+                        global neighbours
+                        global routingTable
+
+                        stop_listen.set()
+                        stop_hello.set()
+                        set_adr(payload)
+
+                        lsdb.clear()
+                        neighbours.clear()
+                        neighbours.append(serial_number)
+                        routingTable.clear()
+
+                        time.sleep(5)
+
+                        # change air data rate to payload
+                        change_adr(payload)
+
+                        time.sleep(5)
+
+                        stop_listen.clear()
+                        # stop_hello.clear()
+
+                        # start sending hellos and reset 5 min timer
+                        time.sleep(random.randint(0,HELLO_TIMEOUT))
+                        stop_hello.clear()
+                        print("restarting timer and hello messages")
+                        new_hello_thread(True)
+                        send_hello_msg.start()
+                        new_Timer()
+                        t.start()
+
+                        time.sleep(2)
+
+                    elif len(payload) > 1:
+                        print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}\nStats are updated:")
+                        stats[source, message[3]] = message[4]
+                        print(stats)
                     
                 else:
                     fwd_message = [routingTable[destination], source, destination]
