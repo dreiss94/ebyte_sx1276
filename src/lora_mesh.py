@@ -719,6 +719,8 @@ def listen():
                         stop_hello.set()
                         set_adr(message[3])
 
+                        time.sleep(5)
+
                         lsdb.clear()
                         neighbours.clear()
                         neighbours.append(serial_number)
