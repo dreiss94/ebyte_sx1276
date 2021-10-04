@@ -314,7 +314,7 @@ def send_LSAs():
         message.extend(value[1:])
         print("sending LSA", message)
         send(bytearray(message))
-        time.sleep(random.randint(0,3))
+        time.sleep(3)
         counter_LSA += 1
         print(f"\nNode {myAddress} has sent {counter_LSA} LSA packets.\n")
 
@@ -576,15 +576,12 @@ def listen():
                 # only gather information about foreign nodes
 
                 if source not in lsdb.keys() or lsdb[source][0] < message[2]:
-                    if source == 16:
-                        pass
-                    else:
-                        lsdb_set_lsa(message)
-                        global start_dijkstra
-                        time.sleep(3)
-                        if bool(neighbours[1:]):
-                            start_dijkstra = True
-                            update_rt()
+                    lsdb_set_lsa(message)
+                    global start_dijkstra
+                    time.sleep(3)
+                    if bool(neighbours[1:]):
+                        start_dijkstra = True
+                        update_rt()
 
 
         elif identifier == 255:
