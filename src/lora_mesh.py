@@ -524,15 +524,19 @@ def increase_speed():
         global stop_hello
         global lsdb
         global neighbours
+        global n_time
 
         stop_listen.set()
         stop_hello.set()
         set_adr(adr)
+        t.cancel()
 
         lsdb.clear()
         neighbours.clear()
         neighbours.append(serial_number)
         routingTable.clear()
+        n_time.clear()
+
 
         time.sleep(5)
 
@@ -714,10 +718,12 @@ def listen():
                         global stop_hello
                         global lsdb
                         global neighbours
+                        global n_time
 
                         stop_listen.set()
                         stop_hello.set()
                         set_adr(message[3])
+                        t.cancel()
 
                         time.sleep(5)
 
@@ -725,6 +731,7 @@ def listen():
                         neighbours.clear()
                         neighbours.append(serial_number)
                         routingTable.clear()
+                        n_time.clear()
 
                         time.sleep(5)
 
