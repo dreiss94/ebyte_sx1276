@@ -425,6 +425,7 @@ def analyse_stats():
 
     global counter
     global stop_increasing
+    global lsdb
 
     counter += 1
     print(f"increased counter = {counter}")
@@ -433,8 +434,8 @@ def analyse_stats():
 
     if counter >= NUMBER_OF_NODES:
         if stop_increasing == False:
-            for i in LSDB.keys():
-                if i not in LSDB.values():
+            for i in lsdb.keys():
+                if i not in lsdb.values():
                     increase = False
                     decrease_speed()
                     break
@@ -742,7 +743,7 @@ if __name__ == "__main__":
     threadLock = threading.Lock()
 
 
-    scenario = 1
+    scenario = 3
     
     if scenario == 1:
         # SCENARIO 1: Initializing the mesh
