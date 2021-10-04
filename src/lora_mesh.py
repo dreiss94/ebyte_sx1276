@@ -493,9 +493,8 @@ def send_new_adr(adr):
             msg = [next_hop, myAddress, i, adr]
             barr = bytearray(msg)
             print(f"Sending adr to node {i}: msg")
-            for i in range(2):
-                send(barr)
-                time.sleep(random.randint(0,3))
+            send(barr)
+            time.sleep(1)
         
     for i in routingTable.keys():
         next_hop = routingTable[i]
@@ -504,9 +503,8 @@ def send_new_adr(adr):
             msg = [next_hop, myAddress, i, adr]
             barr = bytearray(msg)
             print(f"Sending adr to node {i}: msg")
-            for i in range(2):
-                send(barr)
-                time.sleep(random.randint(0,3))
+            send(barr)
+            time.sleep(1)
 
 def increase_speed():
     print("advertise increased channel")
