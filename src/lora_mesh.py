@@ -716,11 +716,10 @@ def listen():
                         global stop_hello
                         global lsdb
                         global neighbours
-                        global routingTable
 
                         stop_listen.set()
                         stop_hello.set()
-                        set_adr(payload)
+                        set_adr(message[3])
 
                         lsdb.clear()
                         neighbours.clear()
@@ -730,7 +729,7 @@ def listen():
                         time.sleep(5)
 
                         # change air data rate to payload
-                        change_adr(payload)
+                        change_adr(message[3])
 
                         time.sleep(5)
 
