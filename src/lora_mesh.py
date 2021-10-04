@@ -494,6 +494,8 @@ def increase_speed():
 
         adr += 1
 
+        global routingTable
+
         for i in routingTable.keys():
             next_hop = routingTable[i]
             # [next-hop, source, destination, payload]
@@ -509,7 +511,6 @@ def increase_speed():
             global stop_hello
             global lsdb
             global neighbours
-            global routingTable
 
             stop_listen.set()
             stop_hello.set()
@@ -560,6 +561,8 @@ def decrease_speed():
         
         adr -= 1
 
+        global routingTable
+
         for i in routingTable.keys():
             next_hop = routingTable[i]
             # [next-hop, source, destination, payload]
@@ -574,7 +577,7 @@ def decrease_speed():
         global stop_hello
         global lsdb
         global neighbours
-        global routingTable
+        
 
         stop_listen.set()
         stop_hello.set()
@@ -702,7 +705,7 @@ def listen():
                 if destination == myAddress:
                     if len(payload) == 1:
                         # handle increasing or decreasing adr
-                        global stop_listen
+                        
                         global stop_hello
                         global lsdb
                         global neighbours
@@ -771,7 +774,7 @@ def listen():
         elif identifier == 254:
             # handle LSA [Indentifier, Source/Key, version, neighbour1, neighbour2, ...]
 
-            global neighbours
+            
 
             if source != myAddress:
                 # only gather information about foreign nodes
