@@ -535,7 +535,7 @@ def increase_speed():
         neighbours.clear()
         neighbours.append(serial_number)
         routingTable.clear()
-        n_time.clear()
+        n_time = [-1]
 
 
         time.sleep(5)
@@ -731,7 +731,7 @@ def listen():
                         neighbours.clear()
                         neighbours.append(serial_number)
                         routingTable.clear()
-                        n_time.clear()
+                        n_time = [-1]
 
                         time.sleep(5)
 
