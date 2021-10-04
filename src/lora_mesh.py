@@ -64,6 +64,8 @@ stop_checking = threading.Event()
 counter_LSA = 0
 counter_LSR = 0
 
+stop_increasing = False
+
 def register_socket(s):
     """registers clients for e32.data socket"""
 
@@ -314,7 +316,7 @@ def send_LSAs():
         message.extend(value[1:])
         print("sending LSA", message)
         send(bytearray(message))
-        time.sleep(3)
+        time.sleep(random.randint(0,3))
         counter_LSA += 1
         print(f"\nNode {myAddress} has sent {counter_LSA} LSA packets.\n")
 
@@ -422,30 +424,42 @@ def analyse_stats():
     """go through stats to determine state of mesh"""
 
     global counter
+    global stop_increasing
 
     counter += 1
+    print(f"increased counter = {counter}")
+
 
     if counter >= NUMBER_OF_NODES:
-        sum = 0
-        count = 0
-        for x in stats:
-            for y in x:
-                if y != 0:
-                    # take percentage into consideration
-                    sum += y
-                    count += 1
-        
-        print(f"The average percentage is: {(sum/count)}")
-        print(f"The number of single connections is: {(count)}")
-        print(f"The number of connections is: {(count/2)}")
-        
-        if count > 2*(NUMBER_OF_NODES-1):
-            print(f"count {count} > 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore increasing the speed")
+        if len(LSDB.keys()) == NUMBER_OF_NODES and stop_increasing == False:
             increase_speed()
         
-        if count < 2*(NUMBER_OF_NODES-1):
-            print(f"count {count} < 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore decreasing the speed")
+        elif len(LSDB.keys()) < NUMBER_OF_NODES:
+            stop_increasing = True
             decrease_speed()
+
+
+    # if counter >= NUMBER_OF_NODES:
+    #     sum = 0
+    #     count = 0
+    #     for x in stats:
+    #         for y in x:
+    #             if y != 0:
+    #                 # take percentage into consideration
+    #                 sum += y
+    #                 count += 1
+        
+    #     print(f"The average percentage is: {(sum/count)}")
+    #     print(f"The number of single connections is: {(count)}")
+    #     print(f"The number of connections is: {(count/2)}")
+        
+    #     if count > 2*(NUMBER_OF_NODES-1):
+    #         print(f"count {count} > 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore increasing the speed")
+    #         increase_speed()
+        
+    #     if count < 2*(NUMBER_OF_NODES-1):
+    #         print(f"count {count} < 2*nodes {(2*(NUMBER_OF_NODES-1))}, therefore decreasing the speed")
+    #         decrease_speed()
 
 
 def increase_speed():
@@ -576,12 +590,15 @@ def listen():
                 # only gather information about foreign nodes
 
                 if source not in lsdb.keys() or lsdb[source][0] < message[2]:
-                    lsdb_set_lsa(message)
-                    global start_dijkstra
-                    time.sleep(3)
-                    if bool(neighbours[1:]):
-                        start_dijkstra = True
-                        update_rt()
+                    if source == 16:
+                        pass
+                    else:
+                        lsdb_set_lsa(message)
+                        global start_dijkstra
+                        time.sleep(3)
+                        if bool(neighbours[1:]):
+                            start_dijkstra = True
+                            update_rt()
 
 
         elif identifier == 255:
@@ -680,7 +697,10 @@ def listen():
                     
                     if (hello_received[index] % 10) == 0:
                         if bool(routingTable):
-                            sendto_controller(index)
+                            try:
+                                sendto_controller(index)
+                            except:
+                                pass
         else:
             print("Message ", msg, " discarded because Im not next hop")
 
