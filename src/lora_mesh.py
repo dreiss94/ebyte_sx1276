@@ -413,7 +413,7 @@ def sendto_controller(index):
         print("Sending stats to controller", msg)
         for i in range(2):
             send(barr)
-            time.sleep(5)
+            time.sleep(random.randint(0,5))
     else:
         # update controller statistics
         stats[myAddress] = hello_percentage[1:]
@@ -429,14 +429,29 @@ def analyse_stats():
     counter += 1
     print(f"increased counter = {counter}")
 
+    increase = True
 
     if counter >= NUMBER_OF_NODES:
-        if len(LSDB.keys()) == NUMBER_OF_NODES and stop_increasing == False:
-            increase_speed()
+        if stop_increasing == False:
+            for i in LSDB.keys():
+                if i not in LSDB.values():
+                    increase = False
+                    decrease_speed()
+                    break
+    
+            if increase == True:
+                increase_speed()
+        else:
+            #stay
+            print("staying on same channel")
+            pass
+
+        # if len(LSDB.keys()) == NUMBER_OF_NODES and :
+        #     increase_speed()
         
-        elif len(LSDB.keys()) < NUMBER_OF_NODES:
-            stop_increasing = True
-            decrease_speed()
+        # elif len(LSDB.keys()) < NUMBER_OF_NODES:
+        #     stop_increasing = True
+        #     decrease_speed()
 
 
     # if counter >= NUMBER_OF_NODES:
@@ -463,10 +478,12 @@ def analyse_stats():
 
 
 def increase_speed():
-    return 0
+    print("increasing speed")
 
 def decrease_speed():
-    return 0
+    global stop_increasing
+    stop_increasing = True
+    print("decreasing speed")
 
 
 def go_to_rendez_vous():
@@ -695,7 +712,7 @@ def listen():
                         hello_received[index] = 0
                         hello_offset[index] = 0
                     
-                    if (hello_received[index] % 10) == 0:
+                    if (hello_received[index] % 3) == 0:
                         if bool(routingTable):
                             try:
                                 sendto_controller(index)
