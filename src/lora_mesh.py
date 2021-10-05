@@ -192,7 +192,7 @@ def send_hello(advertising: bool):
     if advertising == TRUE
         every 10th message is on rendez-vous channel at 0.3kbps 
     """
-    counter = random.randint(15)
+    counter = random.randint(0,15)
     if controller == myAddress and stop_increasing == True:
         counter = 10
     start = counter
