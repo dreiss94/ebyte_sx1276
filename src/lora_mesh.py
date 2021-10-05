@@ -200,7 +200,7 @@ def send_hello(advertising: bool):
         
         if advertising:
             # change to rendez-vous channel
-            if (counter % 10) == 0:
+            if (counter % 15) == 0:
                 if bool(routingTable) or controller == myAddress:
 
                     print("changing to rendez-vous channel to advertise mesh channel")
@@ -574,7 +574,7 @@ def increase_speed():
         n_time = [-1]
 
 
-        time.sleep(5)
+        time.sleep(10)
 
         # change air data rate to payload
         change_adr(adr)
@@ -637,7 +637,7 @@ def decrease_speed():
         neighbours.append(serial_number)
         routingTable.clear()
 
-        time.sleep(5)
+        time.sleep(10)
 
         # change air data rate to payload
         change_adr(adr)
