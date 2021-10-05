@@ -956,12 +956,12 @@ def listen():
                         hello_received[index] = 0
                         hello_offset[index] = 0
                     
-                    if (hello_received[index] % 3) == 0:
-                        if bool(routingTable):
-                            try:
-                                sendto_controller(index)
-                            except:
-                                pass
+                    # if (hello_received[index] % 3) == 0:
+                    #     if bool(routingTable):
+                    #         try:
+                    #             sendto_controller(index)
+                    #         except:
+                    #             pass
         else:
             print("Message ", msg, " discarded because Im not next hop")
 
