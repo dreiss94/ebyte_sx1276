@@ -253,11 +253,11 @@ def send_hello(advertising: bool):
         
         barr.extend(hash)
 
-        if myAddress == controller:
-            # analyze stats
-            #if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
-            if (counter - start) % 9 == 0:
-                analyse_stats()
+        # if myAddress == controller:
+        #     # analyze stats
+        #     #if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
+        #     if (counter - start) % 9 == 0:
+        #         analyse_stats()
 
         print("sending hello", barr)
         send(barr)
@@ -988,7 +988,7 @@ if __name__ == "__main__":
     
 
 
-    scenario = 3
+    scenario = 1
     
     if scenario == 1:
         # SCENARIO 1: Initializing the mesh
