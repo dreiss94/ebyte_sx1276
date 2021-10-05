@@ -253,16 +253,17 @@ def send_hello(advertising: bool):
         
         barr.extend(hash)
 
-        print("sending hello", barr)
-        send(barr)
-        counter += 1
-        print(f"\nNode {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
-
         if myAddress == controller:
             # analyze stats
             #if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
             if (counter - start) % 9 == 0:
                 analyse_stats()
+
+        print("sending hello", barr)
+        send(barr)
+        counter += 1
+        print(f"\nNode {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
+
 
         time.sleep(HELLO_TIMEOUT)
 
@@ -616,7 +617,7 @@ def decrease_speed():
 
         global routingTable
 
-        send_new_adr(adr, True)
+        send_new_adr(adr, False)
         
         global stop_listen
         global stop_hello
