@@ -201,7 +201,7 @@ def send_hello(advertising: bool):
         if advertising:
             # change to rendez-vous channel
             if (counter % 20) == 0:
-                if bool(routingTable):# or controller == myAddress:
+                if bool(routingTable) and controller == myAddress:
 
                     print("changing to rendez-vous channel to advertise mesh channel")
 
