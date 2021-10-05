@@ -424,7 +424,7 @@ def sendto_controller(index):
     else:
         # update controller statistics
         stats[myAddress] = hello_percentage[1:]
-        analyse_stats()
+        # analyse_stats()
         print(stats)
 
 def analyse_stats():
