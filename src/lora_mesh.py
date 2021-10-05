@@ -487,6 +487,10 @@ def analyse_stats():
 
 
 def send_new_adr(adr):
+
+    global stats
+    stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
+    
     # send first to further nodes
     for i in routingTable.keys():
         next_hop = routingTable[i]
@@ -527,6 +531,11 @@ def increase_speed():
         global lsdb
         global neighbours
         global n_time
+        global counter_LSA
+        global counter_LSR
+
+        counter_LSR = 0
+        counter_LSR = 0
 
         stop_listen.set()
         stop_hello.set()
@@ -588,7 +597,11 @@ def decrease_speed():
         global stop_hello
         global lsdb
         global neighbours
-        
+        global counter_LSA
+        global counter_LSR
+
+        counter_LSR = 0
+        counter_LSR = 0
 
         stop_listen.set()
         stop_hello.set()
@@ -725,13 +738,18 @@ def listen():
                         global lsdb
                         global neighbours
                         global n_time
+                        global counter_LSA
+                        global counter_LSR
+
+                        counter_LSR = 0
+                        counter_LSR = 0
 
                         stop_listen.set()
                         stop_hello.set()
                         set_adr(message[3])
                         t.cancel()
 
-                        time.sleep(5)
+                        time.sleep(10)
 
                         lsdb.clear()
                         neighbours.clear()
