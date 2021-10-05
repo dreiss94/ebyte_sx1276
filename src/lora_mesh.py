@@ -574,7 +574,7 @@ def increase_speed():
         n_time = [-1]
 
 
-        time.sleep(HELLO_TIMEOUT)
+        time.sleep(10)
 
         # change air data rate to payload
         change_adr(adr)
@@ -585,11 +585,11 @@ def increase_speed():
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
-        time.sleep(random.randint(0,HELLO_TIMEOUT))
+        time.sleep(random.randint(0,10))
         stop_hello.clear()
         print("restarting timer and hello messages")
-        new_hello_thread(True)
-        send_hello_msg.start()
+        #new_hello_thread(True)
+        #send_hello_msg.start()
         new_Timer()
         t.start()
 
@@ -622,6 +622,7 @@ def decrease_speed():
         global stop_hello
         global lsdb
         global neighbours
+        global n_time
         global counter_LSA
         global counter_LSR
 
@@ -631,13 +632,17 @@ def decrease_speed():
         stop_listen.set()
         stop_hello.set()
         set_adr(adr)
+        t.cancel()
+
+        time.sleep(10)
 
         lsdb.clear()
         neighbours.clear()
         neighbours.append(serial_number)
         routingTable.clear()
+        n_time = [-1]
 
-        time.sleep(HELLO_TIMEOUT)
+        time.sleep(5)
 
         # change air data rate to payload
         change_adr(adr)
@@ -648,16 +653,15 @@ def decrease_speed():
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
-        time.sleep(random.randint(0,HELLO_TIMEOUT))
+        time.sleep(random.randint(0,10))
         stop_hello.clear()
         print("restarting timer and hello messages")
-        new_hello_thread(True)
-        send_hello_msg.start()
+        #new_hello_thread(True)
+        #send_hello_msg.start()
         new_Timer()
         t.start()
 
         time.sleep(2)
-        
         
         
 
