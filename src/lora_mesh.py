@@ -193,7 +193,7 @@ def send_hello(advertising: bool):
         every 10th message is on rendez-vous channel at 0.3kbps 
     """
     counter = random.randint(1,20)
-    if controller == myAddress and stop_increasing == True:
+    if controller == myAddress: # and stop_increasing == True:
         counter = 10
     start = counter
     while not stop_hello.is_set():
