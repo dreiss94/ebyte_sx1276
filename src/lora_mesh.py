@@ -251,6 +251,12 @@ def send_hello(advertising: bool):
         send(barr)
         counter += 1
         print(f"\nNode {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
+
+        if myAddress == controller:
+            # analyze stats
+            if (counter - start) % 10:
+                analyse_stats()
+
         time.sleep(HELLO_TIMEOUT)
 
 
@@ -427,33 +433,31 @@ def analyse_stats():
     global stop_increasing
     global lsdb
 
-    counter += 1
-    print(f"increased counter = {counter}")
+    print(f"analysing LSDB: checking if every entry has ingoing and outgoing edge..")
 
     increase = True
 
-    if counter >= NUMBER_OF_NODES:
-        if stop_increasing == False:
-            keys = lsdb.keys()
-            values = lsdb.values()
-            vals = []
-            for e in values:
-                vals.extend(e)
-            
-            for i in keys:
-                if i not in vals:
-                    increase = False
-                    counter = 1
-                    decrease_speed()
-                    break
+    if stop_increasing == False:
+        keys = lsdb.keys()
+        values = lsdb.values()
+        vals = []
+        for e in values:
+            vals.extend(e)
+        
+        for i in keys:
+            if i not in vals:
+                increase = False
+                # counter = 1
+                decrease_speed()
+                break
 
-            if increase == True:
-                counter = 1
-                increase_speed()
-        else:
-            #stay
-            print("staying on same channel")
-            pass
+        if increase == True:
+            # counter = 1
+            increase_speed()
+    else:
+        #stay
+        print("staying on same channel")
+        pass
 
         # if len(LSDB.keys()) == NUMBER_OF_NODES and :
         #     increase_speed()
