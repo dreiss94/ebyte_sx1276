@@ -938,11 +938,13 @@ def listen():
                         
                     # gather packets lost stats
                     # update hello_counter
-                    hello_received[index] += 1
-                    # update hello_percentage
-                    global hello_percentage
-                    hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
-
+                    try:
+                        hello_received[index] += 1
+                        # update hello_percentage
+                        global hello_percentage
+                        hello_percentage[index] = 100 * hello_received[index] / (message[2] - hello_offset[index])
+                    except:
+                        pass
                     print(f"hello received: {hello_received}")
                     if message[2] >= 250:
                         # reset hello received counter (and hello_offset) to 0 if the received counter is 250
