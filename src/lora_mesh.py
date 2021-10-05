@@ -326,7 +326,7 @@ def request_LSA(target):
     # send hello first (timeout = 30s) to make sure other node has entry
 
     global counter_LSR
-    time.sleep(5)
+    # time.sleep(5)
 
     message = [253, myAddress, target] 
     barr = bytearray(message)
@@ -490,7 +490,7 @@ def send_new_adr(adr):
 
     global stats
     stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
-    
+
     # send first to further nodes
     for i in routingTable.keys():
         next_hop = routingTable[i]
@@ -893,7 +893,7 @@ def listen():
                     print("myhash", int.from_bytes(dict_hash()[:1], "big"), "vs", message[3], "other hash")
                     if int.from_bytes(dict_hash()[:1], "big") != message[3]:
                         #send_LSAs()
-                        time.sleep(2)
+                        time.sleep(random.randint(0,2))
                         request_LSA(source)
                         # if not update_routing_table.is_alive():
                         #     update_routing_table.start()
