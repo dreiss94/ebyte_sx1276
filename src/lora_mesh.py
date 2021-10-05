@@ -209,7 +209,7 @@ def send_hello(advertising: bool):
                     global stop_listen
                     stop_listen.set()
 
-                    t.cancel()
+                    # t.cancel()
 
                     # get current adr
                     current_adr = get_adr()
@@ -226,7 +226,7 @@ def send_hello(advertising: bool):
                     # time.sleep(5)
 
                     # stay on rendez-vous for 1 min to gather information if node wants to join
-                    for i in range(2):
+                    for i in range(1):
 
                         send_rendez_vous_hello()
                         time.sleep(10)
@@ -237,8 +237,8 @@ def send_hello(advertising: bool):
                     change_adr(current_adr)
                     stop_listen.clear()
 
-                    new_Timer()
-                    t.start()
+                    # new_Timer()
+                    # t.start()
 
                 #     # TODO inform controller
 
