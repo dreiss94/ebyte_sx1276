@@ -8,7 +8,7 @@ import os, os.path
 import numpy as np
 from routing import myAddress
 
-NUMBER_OF_NODES = 4
+NUMBER_OF_NODES = 5
 
 def get_adjacency_matrix(lsdb):
 	"""converts LSDB to adjacency matrix"""
