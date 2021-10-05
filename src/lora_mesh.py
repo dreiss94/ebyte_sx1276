@@ -198,7 +198,7 @@ def send_hello(advertising: bool):
         
         if advertising:
             # change to rendez-vous channel
-            if (counter % 15) == 0 and bool(routingTable):
+            if (counter % 10) == 0 and bool(routingTable):
 
                 print("changing to rendez-vous channel to advertise mesh channel")
 
@@ -220,10 +220,10 @@ def send_hello(advertising: bool):
                 # time.sleep(5)
 
                 # stay on rendez-vous for 1 min to gather information if node wants to join
-                for i in range(1,3):
+                for i in range(2):
 
                     send_rendez_vous_hello()
-                    time.sleep(25)
+                    time.sleep(10)
                 
                 # go back to current air data rate and inform controller about joining nodes
 
