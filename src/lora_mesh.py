@@ -254,7 +254,7 @@ def send_hello(advertising: bool):
 
         if myAddress == controller:
             # analyze stats
-            if (counter - start) % 10 == 0:
+            if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
                 analyse_stats()
 
         time.sleep(HELLO_TIMEOUT)
