@@ -1004,7 +1004,7 @@ if __name__ == "__main__":
         # nodes forward statistics to controller
 
         # create hello thread without advertising
-        new_hello_thread(False)
+        new_hello_thread(True)
 
     else:
         new_hello_thread(False)
