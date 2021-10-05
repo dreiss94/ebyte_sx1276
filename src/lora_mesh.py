@@ -437,8 +437,13 @@ def analyse_stats():
 
     increase = True
 
-    if stop_increasing == False:
-        keys = lsdb.keys()
+
+    # if stop_increasing == False:
+    keys = lsdb.keys()
+    if len(keys) < NUMBER_OF_NODES:
+        increase = False
+        decrease_speed()
+    else:
         values = lsdb.values()
         vals = []
         for e in values:
@@ -451,13 +456,13 @@ def analyse_stats():
                 decrease_speed()
                 break
 
-        if increase == True:
+        if increase == True and stop_increasing == False:
             # counter = 1
             increase_speed()
-    else:
-        #stay
-        print("staying on same channel")
-        pass
+        else:
+            #stay
+            print("staying on same channel")
+            pass
 
         # if len(LSDB.keys()) == NUMBER_OF_NODES and :
         #     increase_speed()
