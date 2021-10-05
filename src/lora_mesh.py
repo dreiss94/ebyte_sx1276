@@ -203,6 +203,7 @@ def send_hello(advertising: bool):
 
                     print("changing to rendez-vous channel to advertise mesh channel")
 
+
                     global stop_listen
                     stop_listen.set()
 
@@ -212,6 +213,8 @@ def send_hello(advertising: bool):
                     current_adr = get_adr()
                     print("current ADR: ", current_adr)
                     time.sleep(5)
+
+                    set_adr(current_adr)
 
                     # change air data rate to 300bps
                     change_adr(0x18)
