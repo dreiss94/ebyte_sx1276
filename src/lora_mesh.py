@@ -200,8 +200,8 @@ def send_hello(advertising: bool):
         
         if advertising:
             # change to rendez-vous channel
-            if (counter % 10) == 0:
-                if bool(routingTable) or controller == myAddress:
+            if (counter % 15) == 0:
+                if bool(routingTable):# or controller == myAddress:
 
                     print("changing to rendez-vous channel to advertise mesh channel")
 
@@ -1036,7 +1036,7 @@ if __name__ == "__main__":
     neighbours_check.start()
     update_routing_table.start()
 
-    if scenario == 1 or scenario == 3:
+    if scenario == 2 or scenario == 3:
         # start Timer
         t.start()
 
