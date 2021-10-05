@@ -496,7 +496,7 @@ def analyse_stats():
     #         decrease_speed()
 
 
-def send_new_adr(adr):
+def send_new_adr(adr, bool):
 
     global stats
     stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
@@ -511,6 +511,11 @@ def send_new_adr(adr):
             print(f"Sending adr to node {i}: msg")
             send(barr)
             time.sleep(1)
+            if bool:
+                print(f"Sending adr to node {i}: msg")
+                send(barr)
+                time.sleep(1)
+
         
     for i in routingTable.keys():
         next_hop = routingTable[i]
@@ -521,6 +526,10 @@ def send_new_adr(adr):
             print(f"Sending adr to node {i}: msg")
             send(barr)
             time.sleep(1)
+            if bool:
+                print(f"Sending adr to node {i}: msg")
+                send(barr)
+                time.sleep(1)
 
 def increase_speed():
     print("advertise increased channel")
@@ -534,7 +543,7 @@ def increase_speed():
 
         global routingTable
 
-        send_new_adr(adr)
+        send_new_adr(adr, False)
             
         global stop_listen
         global stop_hello
@@ -601,7 +610,7 @@ def decrease_speed():
 
         global routingTable
 
-        send_new_adr(adr)
+        send_new_adr(adr, True)
         
         global stop_listen
         global stop_hello
