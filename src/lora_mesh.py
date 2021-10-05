@@ -980,6 +980,8 @@ if __name__ == "__main__":
 
     threadLock = threading.Lock()
 
+    set_adr(get_adr())
+
 
     scenario = 3
     
