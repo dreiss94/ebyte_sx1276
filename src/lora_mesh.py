@@ -760,42 +760,44 @@ def listen():
                         global counter_LSA
                         global counter_LSR
 
-                        counter_LSR = 0
-                        counter_LSR = 0
+                        if current_adr != payload:
 
-                        stop_listen.set()
-                        stop_hello.set()
-                        set_adr(message[3])
-                        t.cancel()
+                            counter_LSR = 0
+                            counter_LSR = 0
 
-                        time.sleep(10)
+                            stop_listen.set()
+                            stop_hello.set()
+                            set_adr(message[3])
+                            t.cancel()
 
-                        lsdb.clear()
-                        neighbours.clear()
-                        neighbours.append(serial_number)
-                        routingTable.clear()
-                        n_time = [-1]
+                            time.sleep(10)
 
-                        time.sleep(5)
+                            lsdb.clear()
+                            neighbours.clear()
+                            neighbours.append(serial_number)
+                            routingTable.clear()
+                            n_time = [-1]
 
-                        # change air data rate to payload
-                        change_adr(message[3])
+                            time.sleep(5)
 
-                        time.sleep(5)
+                            # change air data rate to payload
+                            change_adr(message[3])
 
-                        stop_listen.clear()
-                        # stop_hello.clear()
+                            time.sleep(5)
 
-                        # start sending hellos and reset 5 min timer
-                        time.sleep(random.randint(0,HELLO_TIMEOUT))
-                        stop_hello.clear()
-                        print("restarting timer and hello messages")
-                        new_hello_thread(True)
-                        send_hello_msg.start()
-                        new_Timer()
-                        t.start()
+                            stop_listen.clear()
+                            # stop_hello.clear()
 
-                        time.sleep(2)
+                            # start sending hellos and reset 5 min timer
+                            time.sleep(random.randint(0,HELLO_TIMEOUT))
+                            stop_hello.clear()
+                            print("restarting timer and hello messages")
+                            new_hello_thread(True)
+                            send_hello_msg.start()
+                            new_Timer()
+                            t.start()
+
+                            time.sleep(2)
 
                     elif len(payload) > 1:
                         print(f"Message {msg} arrived at destination {myAddress} with payload: {payload}\nStats are updated:")
