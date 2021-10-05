@@ -574,7 +574,7 @@ def increase_speed():
         n_time = [-1]
 
 
-        time.sleep(10)
+        time.sleep(HELLO_TIMEOUT)
 
         # change air data rate to payload
         change_adr(adr)
@@ -637,7 +637,7 @@ def decrease_speed():
         neighbours.append(serial_number)
         routingTable.clear()
 
-        time.sleep(10)
+        time.sleep(HELLO_TIMEOUT)
 
         # change air data rate to payload
         change_adr(adr)
@@ -776,7 +776,7 @@ def listen():
                             set_adr(message[3])
                             t.cancel()
 
-                            time.sleep(10)
+                            time.sleep(HELLO_TIMEOUT)
 
                             lsdb.clear()
                             neighbours.clear()
