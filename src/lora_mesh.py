@@ -198,45 +198,46 @@ def send_hello(advertising: bool):
         
         if advertising:
             # change to rendez-vous channel
-            if (counter % 10) == 0 and bool(routingTable):
+            if (counter % 10) == 0:
+                if bool(routingTable) or controller == myAddress:
 
-                print("changing to rendez-vous channel to advertise mesh channel")
+                    print("changing to rendez-vous channel to advertise mesh channel")
 
-                global stop_listen
-                stop_listen.set()
+                    global stop_listen
+                    stop_listen.set()
 
-                t.cancel()
+                    t.cancel()
 
-                # get current adr
-                current_adr = get_adr()
-                print("current ADR: ", current_adr)
-                time.sleep(5)
+                    # get current adr
+                    current_adr = get_adr()
+                    print("current ADR: ", current_adr)
+                    time.sleep(5)
 
-                # change air data rate to 300bps
-                change_adr(0x18)
+                    # change air data rate to 300bps
+                    change_adr(0x18)
 
-                stop_listen.clear()
+                    stop_listen.clear()
 
-                # time.sleep(5)
+                    # time.sleep(5)
 
-                # stay on rendez-vous for 1 min to gather information if node wants to join
-                for i in range(2):
+                    # stay on rendez-vous for 1 min to gather information if node wants to join
+                    for i in range(2):
 
-                    send_rendez_vous_hello()
-                    time.sleep(10)
-                
-                # go back to current air data rate and inform controller about joining nodes
+                        send_rendez_vous_hello()
+                        time.sleep(10)
+                    
+                    # go back to current air data rate and inform controller about joining nodes
 
-                stop_listen.is_set()
-                change_adr(current_adr)
-                stop_listen.clear()
+                    stop_listen.is_set()
+                    change_adr(current_adr)
+                    stop_listen.clear()
 
-                new_Timer()
-                t.start()
+                    new_Timer()
+                    t.start()
 
-            #     # TODO inform controller
+                #     # TODO inform controller
 
-                time.sleep(1)
+                    time.sleep(1)
 
         # normal Hello messages
         # [255, source, counter, beginning_of_hash]
