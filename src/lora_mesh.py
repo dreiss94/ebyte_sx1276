@@ -229,7 +229,7 @@ def send_hello(advertising: bool):
                     for i in range(1):
 
                         send_rendez_vous_hello()
-                        time.sleep(10)
+                        time.sleep(2)
                     
                     # go back to current air data rate and inform controller about joining nodes
 
