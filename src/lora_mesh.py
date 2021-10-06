@@ -613,7 +613,7 @@ def decrease_speed():
     adr = get_adr()
     time.sleep(3)
     
-    if adr >= 25:
+    if adr >= 26:
         
         adr -= 1
 
