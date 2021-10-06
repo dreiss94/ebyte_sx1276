@@ -40,7 +40,7 @@ hello_percentage = numpy.full(NUMBER_OF_NODES+1, 0)
 stats = numpy.full([NUMBER_OF_NODES, NUMBER_OF_NODES], 0)
 
 controller = 0 # BIN is the controller
-HELLO_TIMEOUT = 60
+HELLO_TIMEOUT = 30
 
 routingTable = {}
 
@@ -806,7 +806,7 @@ def listen():
                             time.sleep(random.randint(0,HELLO_TIMEOUT))
                             stop_hello.clear()
                             print("restarting timer and hello messages")
-                            new_hello_thread(True)
+                            new_hello_thread(False)
                             send_hello_msg.start()
                             new_Timer()
                             t.start()
