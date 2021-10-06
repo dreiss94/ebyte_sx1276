@@ -620,7 +620,7 @@ def decrease_speed():
         global routingTable
 
         send_new_adr(adr, False)
-        
+            
         global stop_listen
         global stop_hello
         global lsdb
@@ -633,12 +633,10 @@ def decrease_speed():
         counter_LSR = 0
         counter_LSR = 0
 
-        #stop_listen.set()
+        
         stop_hello.set()
         set_adr(adr)
         t.cancel()
-
-        time.sleep(10)
 
         lsdb.clear()
         neighbours.clear()
@@ -646,14 +644,15 @@ def decrease_speed():
         routingTable.clear()
         n_time = [-1]
 
-        time.sleep(5)
 
+        time.sleep(10)
+        # stop_listen.set()
         # change air data rate to payload
         change_adr(adr)
 
         time.sleep(5)
 
-        # stop_listen.clear()
+        #stop_listen.clear()
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
