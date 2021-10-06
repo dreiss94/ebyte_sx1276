@@ -205,7 +205,7 @@ def send_hello(advertising: bool):
 
                     print("changing to rendez-vous channel to advertise mesh channel")
 
-
+                    global t
                     global stop_listen
                     stop_listen.set()
 
@@ -226,7 +226,7 @@ def send_hello(advertising: bool):
                     # time.sleep(5)
 
                     # stay on rendez-vous for 1 min to gather information if node wants to join
-                    for i in range(2):
+                    for i in range(1):
 
                         send_rendez_vous_hello()
                         time.sleep(10)
@@ -560,11 +560,12 @@ def increase_speed():
         global n_time
         global counter_LSA
         global counter_LSR
+        global t
 
         counter_LSR = 0
         counter_LSR = 0
 
-        stop_listen.set()
+        
         stop_hello.set()
         set_adr(adr)
         t.cancel()
@@ -577,13 +578,13 @@ def increase_speed():
 
 
         time.sleep(10)
-
+        # stop_listen.set()
         # change air data rate to payload
         change_adr(adr)
 
         time.sleep(5)
 
-        stop_listen.clear()
+        #stop_listen.clear()
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
@@ -627,6 +628,7 @@ def decrease_speed():
         global n_time
         global counter_LSA
         global counter_LSR
+        global t
 
         counter_LSR = 0
         counter_LSR = 0
@@ -651,7 +653,7 @@ def decrease_speed():
 
         time.sleep(5)
 
-        #stop_listen.clear()
+        # stop_listen.clear()
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
@@ -771,6 +773,7 @@ def listen():
                         global n_time
                         global counter_LSA
                         global counter_LSR
+                        global t
 
                         if current_adr != payload:
 
