@@ -253,17 +253,18 @@ def send_hello(advertising: bool):
         
         barr.extend(hash)
 
-        if myAddress == controller:
-            # analyze stats
-            #if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
-            if (counter - start) % 9 == 0:
-                analyse_stats()
+        
 
         print("sending hello", barr)
         send(barr)
         counter += 1
         print(f"\nNode {myAddress} has sent \t {counter - start} hello \t {counter_LSA} LSA \t {counter_LSR} LSR packets.\n")
 
+        if myAddress == controller:
+            # analyze stats
+            #if (counter - start) % ((NUMBER_OF_NODES*2)+1) == 0:
+            if (counter - start) % 9 == 0:
+                analyse_stats()
 
         time.sleep(HELLO_TIMEOUT)
 
@@ -425,9 +426,9 @@ def sendto_controller(index):
         msg = [next_hop, myAddress, controller, neighbours[index], int(round(hello_percentage[index]))]
         barr = bytearray(msg)
         print("Sending stats to controller", msg)
-        for i in range(2):
+        for i in range(1):
             send(barr)
-            time.sleep(random.randint(0,5))
+            time.sleep(1)
     else:
         # update controller statistics
         stats[myAddress] = hello_percentage[1:]
@@ -448,7 +449,7 @@ def analyse_stats():
 
     # if stop_increasing == False:
     keys = lsdb.keys()
-    if len(keys) < NUMBER_OF_NODES:
+    if len(keys) < NUMBER_OF_NODES-1:
         increase = False
         decrease_speed()
     else:
@@ -630,7 +631,7 @@ def decrease_speed():
         counter_LSR = 0
         counter_LSR = 0
 
-        stop_listen.set()
+        #stop_listen.set()
         stop_hello.set()
         set_adr(adr)
         t.cancel()
@@ -650,7 +651,7 @@ def decrease_speed():
 
         time.sleep(5)
 
-        stop_listen.clear()
+        #stop_listen.clear()
         # stop_hello.clear()
 
         # start sending hellos and reset 5 min timer
@@ -1018,7 +1019,10 @@ if __name__ == "__main__":
         # nodes forward statistics to controller
 
         # create hello thread without advertising
-        new_hello_thread(True)
+        if myAddress == controller:
+            new_hello_thread(True)
+        else:
+            new_hello_thread(False)
 
     else:
         new_hello_thread(False)
